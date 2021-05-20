@@ -48,10 +48,12 @@ class Classes(commands.Cog):
 	# 	# print(message.content)
 	# 	print("msg is in channel!")
 
-
+	"""
+		!add command
+		>>	used to add reminders for a certain class like homework, exams, etc.
+	"""
 	@commands.command()
 	async def add(self, ctx, *args):
-	# # if message.content.upper().startswith("!ADD"):
 		# !add hw8
 		# cmpsc 465
 		# 10/17/19 10pm
