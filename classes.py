@@ -479,11 +479,14 @@ class Classes(commands.Cog):
 		except discord.errors.NotFound:
 			pass
 
-	@commands.command()
+	"""
+		!join command
+		>>	used to join classes and their respective class channels, as well get class role
+	"""
+	@commands.command(aliases=["sub"])
 	@is_in_channel(618210352341188618,
 					error_msg="You entered the command in the wrong channel! Head over to <#618210352341188618> and send it there.")
 	async def join(self, ctx, *args):
-	# if channel.id == 618210352341188618 and message.content.upper().startswith("!JOIN"):
 		channel, author = ctx.channel, ctx.author
 		try:
 			mydb, my_cursor = sql.connect()
@@ -523,6 +526,47 @@ class Classes(commands.Cog):
 			await self.delete_message(channel, m, 10)
 
 	"""
+		!leave command
+		>>	used to leave a certain class -- command only valid in class group chat channels
+	"""
+	@commands.command()
+	async def leave(self, ctx, *args):
+		channel, author = ctx.channel, ctx.author
+
+		mydb, my_cursor = sql.connect()
+		my_cursor.execute("SELECT Class_name, Class_channel_id, Class_role_id, Class_category_id FROM Classes")
+		d = my_cursor.fetchall()
+		sql.close(mydb, my_cursor)
+
+		for c in d:
+			if int(channel.id) == int(c[1]):
+				await delete_message(channel, ctx.message, 0)
+				r = discord.utils.get(ctx.guild.roles, id=int(c[2]))
+				await author.remove_roles(r) 
+
+				m = await self.bot.get_channel(618210352341188618).send("You have successfully unsubscribed from **{}**!\n{}".format(c[0], author.mention))
+				est = pytz.timezone('US/Eastern')
+				em = discord.Embed(color=0xFA0000, timestamp=datetime.datetime.now())
+
+				em.add_field(name="Member left {} chat".format(c[0]), 
+					value="► Name: `{}#{}` {} [{}]\n► Joined Server On: **{}**\n► Channel: {}\n► Removed Role: {} [{}]".format(author.name, author.discriminator, author.mention, author.id, author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p'), self.bot.get_channel(int(c[1])).mention, r.mention, r.id), 
+					inline=False)
+				em.set_author(name = author.name, icon_url = author.avatar_url)
+				staff_log_channel = self.bot.get_channel(707516608347635772)
+				await staff_log_channel.send(embed=em)
+
+				await self.update_class_member_count(int(c[2]), int(c[1]))
+				await self.reorder_channels()
+
+				await delete_message(self.bot.get_channel(618210352341188618), m, 10)	
+				return
+
+		# Error Handling
+		m = await ctx.reply("Wrong Channel! Please go to the class chat you want to leave and enter `!leave` there. {}".format(author.mention))
+		await delete_message(channel, ctx.message, 10)
+		await delete_message(channel, m, 0)
+
+	"""
 		Listener event for on_message
 		>>	called when a message is created and sent
 		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_message
@@ -531,7 +575,7 @@ class Classes(commands.Cog):
 	async def on_message(self, message: discord.Message):
 		# if message is in #class-subscriptions channel and not a !join command and message not from bot
 		if message.channel.id == 618210352341188618 and not message.content.upper().startswith("!JOIN") and message.author.id != 618200495277867110:
-			await self.delete_message(channel, message, 1)
+			await self.delete_message(message.channel, message, 1)
 
 	@join.error
 	async def join_error(self, ctx, error):
