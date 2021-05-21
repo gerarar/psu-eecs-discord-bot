@@ -26,7 +26,7 @@ class PSU_Bot(commands.Bot): # inherits discord.commands class
 	def __init__(self):  
 		super().__init__(command_prefix="!", intents=discord.Intents.all())
 		self.token = os.getenv("BOT_KEY")
-		self.load_extension("classes")	# loads Classes extension containing classes-related commands
+		self.load_extension("cogs.classes")	# loads Classes extension containing classes-related commands
 		# print(vars(self))
 		
 
