@@ -73,7 +73,7 @@ class Classes(commands.Cog):
 				reply_msg = await self.bot.wait_for('message', check=mcheck)
 
 				mydb, my_cursor = sql.connect()
-				my_cursor.execute("SELECT * FROM Classes WHERE Class_name = '%s'" % (reply.content.upper()))
+				my_cursor.execute("SELECT * FROM Classes WHERE Class_name = '%s'" % (reply_msg.content.upper()))
 				d = my_cursor.fetchall()
 				sql.close(mydb, my_cursor)
 				# d = [("0", "1", "CMPSC 473", "3", "1234", "5", "4321")] # data for debuging locally
@@ -86,7 +86,7 @@ class Classes(commands.Cog):
 					await reply_msg.reply("Class Reminder session cancelled.")
 					break
 				else:
-					await reply_msg.reply("Error! Can't seem to find the class **{}**.\nPlease double check that you have entered it correctly and re-enter it!".format(reply.content.upper()))
+					await reply_msg.reply("Error! Can't seem to find the class **{}**.\nPlease double check that you have entered it correctly and re-enter it!".format(reply_msg.content.upper()))
 					continue
 			
 				await reply_msg.reply(f"When is this particular thing due? {author.mention}\nState the date and time like `9/17/2019 10:00pm`")
@@ -283,11 +283,11 @@ class Classes(commands.Cog):
 				cond = True
 				while cond:
 					reply = await self.bot.wait_for('message', check=mcheck)
-					if cancel(reply.content):
+					if cancel(reply_msg.content):
 						cond = False
 						continue
 					else:
-						to_input = reply.content.title()
+						to_input = reply_msg.content.title()
 						break  # this break won't trigger the else in while-else construct
 				else:  # this executes when cond is set to false
 					await reply_msg.reply("Class creation session cancelled.")
