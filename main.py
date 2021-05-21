@@ -24,9 +24,9 @@ class PSU_Bot(commands.Bot): # inherits discord.commands class
 		self is commands.Bot type 
 	"""
 	def __init__(self):  
-		super().__init__(command_prefix="!")
+		super().__init__(command_prefix="!", intents=discord.Intents.all())
 		self.token = os.getenv("BOT_KEY")
-		self.load_extension("classes")	# loads Classes extension containing classes-related commands
+		self.load_extension("cogs.classes")	# loads Classes extension containing classes-related commands
 		# print(vars(self))
 		
 
@@ -37,7 +37,10 @@ class PSU_Bot(commands.Bot): # inherits discord.commands class
 		print("PSU Bot V2 Connected!")
 		print(f"Logged in as {self.user.name}:{self.user.id}")
 		# print(vars(self))
-		await self.get_channel(795781887603114034).send("PSU EECS bot online!")
+		try:
+			await self.get_channel(795781887603114034).send("PSU EECS bot online!")
+		except AttributeError:
+			pass
 		self.print_commands()
 
 	"""
