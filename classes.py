@@ -485,6 +485,12 @@ class Classes(commands.Cog):
 	# 	await self.delete_message(channel, message, 1)
 	# 	# await delete_message(channel, m, 10)
 
+	@join.error
+	async def join_error(ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			print("Join command entered in wrong channel.")
+			pass
+
 def setup(bot):
 	"""
 		>> https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html
