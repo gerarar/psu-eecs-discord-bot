@@ -9,17 +9,11 @@ import random
 import mysql.connector
 import datetime
 import inspect
-import mysqlConnection_local as sql # mysql file
+# import mysqlConnection_local as sql # mysql file
 import traceback
 import pytz
 import threading
 
-def is_in_channel(chnl, error_msg=None):
-	async def predicate(ctx):
-		if error_msg != None:
-			await ctx.reply(f"{error_msg} {ctx.author.mention}")
-		return ctx.channel and ctx.channel.id == chnl
-	return commands.check(predicate)
 
 class Classes(commands.Cog):
 	def __init__(self, bot):
@@ -36,6 +30,16 @@ class Classes(commands.Cog):
 		# print(type(content))
 		await ctx.send(f'Hello {ctx.author.name}. {args}')
 
+	"""
+	Check for commands, given a channel and optional error message
+	>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
+	"""
+	def is_in_channel(chnl: int, error_msg=None):
+		async def predicate(ctx):
+			if error_msg != None and not (ctx.channel and ctx.channel.id == chnl):
+				await ctx.reply(f"{error_msg} {ctx.author.mention}")
+			return ctx.channel and ctx.channel.id == chnl
+		return commands.check(predicate)
 
 	"""
 		Listener event for on_message
@@ -486,7 +490,7 @@ class Classes(commands.Cog):
 	# 	# await delete_message(channel, m, 10)
 
 	@join.error
-	async def join_error(ctx, error):
+	async def join_error(self, ctx, error):
 		if isinstance(error, commands.CheckFailure):
 			print("Join command entered in wrong channel.")
 			pass
