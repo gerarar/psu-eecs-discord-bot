@@ -67,7 +67,7 @@ class Classes(commands.Cog):
 
 		voice_ch = await psu_discord.create_voice_channel("Registered Members: {}".format(num_members), category=cat)
 		await voice_ch.set_permissions(psu_discord.default_role, overwrite=overwrite)
-		print("Set {} registered members to {}".format(bot.get_channel(chat_id).name, num_members))
+		print("Set {} registered members to {}".format(self.bot.get_channel(chat_id).name, num_members))
 
 	"""
 		Helper fuction to reorder the class channels by thier respective member counts
@@ -93,17 +93,6 @@ class Classes(commands.Cog):
 			print("Set {} to position {}".format(role.name, pos))
 			await role.edit(position=pos)
 			await asyncio.sleep(1)
-
-	"""
-		Listener event for on_message
-		>>	called when a message is created and sent
-		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_message
-	"""
-	# @commands.Cog.listener()
-	# # @is_in_channel(1234)
-	# async def on_message(self, message: discord.Message):
-	# 	# print(message.content)
-	# 	print("msg is in channel!")
 
 	"""
 		!add command
@@ -509,7 +498,7 @@ class Classes(commands.Cog):
 					r = discord.utils.get(ctx.guild.roles, id=int(c[2]))
 					await author.add_roles(r) 
 					m = await self.bot.get_channel(int(c[1])).send("You have successfully joined and will now receive all notifications/announcements pertaining to **{}**! {}".format(c[0], author.mention))
-					# await delete_message(channel, m, 20)
+
 					status = False
 
 					await self.update_class_member_count(int(c[2]), int(c[1]))
@@ -519,29 +508,30 @@ class Classes(commands.Cog):
 					em = discord.Embed(color=0x10D600, timestamp=datetime.datetime.now())
 
 					em.add_field(name="Member joined {} chat".format(c[0]), 
-						value="► Name: `{}#{}` {} [{}]\n► Joined Server On: **{}**\n► Channel: {}\n► Added Role: {} [{}]".format(author.name, author.discriminator, author.mention, author.id, author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p'), bot.get_channel(int(c[1])).mention, r.mention, r.id), 
+						value="► Name: `{}#{}` {} [{}]\n► Joined Server On: **{}**\n► Channel: {}\n► Added Role: {} [{}]"
+									.format(author.name, author.discriminator, author.mention, author.id, author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p'), self.bot.get_channel(int(c[1])).mention, r.mention, r.id), 
 						inline=False)
 					em.set_author(name = author.name, icon_url = author.avatar_url)
 					staff_log_channel = self.bot.get_channel(707516608347635772)
 					await staff_log_channel.send(embed=em)
 
 			if status: await ctx.reply("`{}` doesn't seem to exist yet, try creating class chats and roles for it by doing `!create` in <#618205441540882451>! {}".format(cont[1], author.mention))
-		except Exception:
+		except Exception as e:
 			await self.delete_message(channel, ctx.message, 0)
 			m = await channel.send("Error! The command you entered is incorrect. For example, enter `!join 331` if you want to join the class CMPEN 331. {}".format(author.mention))
+			print(e)
 			await self.delete_message(channel, m, 10)
-	# elif channel.id != 618210352341188618:
-	# 	await self.delete_message(channel, ctx.message, 0)
-	# 	m = await channel.send("You entered the command in the wrong channel! Head over to <#618210352341188618> and do it there. {}".format(author.mention))
-	# 	await self.delete_message(channel, m, 10)
-	# elif channel.id == 618210352341188618 and message.content.upper().startswith("!LEAVE"):
-	# 	m = await channel.send("Please go to the class you want to leave and enter `!leave` there. {}".format(author.mention))
-	# 	await self.delete_message(channel, message, 1)
-	# 	await self.delete_message(channel, m, 10)
-	# elif channel.id == 618210352341188618 and message.author.id != 618200495277867110:
-	# 	# m = await channel.send("Error! The command you entered is incorrect. For example, enter `!join 465` if you want to join the class CMPSC 465. {}".format(author.mention))
-	# 	await self.delete_message(channel, message, 1)
-	# 	# await delete_message(channel, m, 10)
+
+	"""
+		Listener event for on_message
+		>>	called when a message is created and sent
+		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_message
+	"""
+	@commands.Cog.listener()
+	async def on_message(self, message: discord.Message):
+		# if message is in #class-subscriptions channel and not a !join command and message not from bot
+		if message.channel.id == 618210352341188618 and not message.content.upper().startswith("!JOIN") and message.author.id != 618200495277867110:
+			await self.delete_message(channel, message, 1)
 
 	@join.error
 	async def join_error(self, ctx, error):
