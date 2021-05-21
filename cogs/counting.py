@@ -48,6 +48,8 @@ class Counting(commands.Cog):
 	"""
 	def is_not_bot():
 		async def predicate(ctx):
+			print(ctx.author.id)
+			print(self.bot.id)
 			return ctx.author and ctx.author.id != self.bot.id
 		return commands.check(predicate)
 
@@ -197,7 +199,7 @@ class Counting(commands.Cog):
 			# global start
 			global c_status
 			
-			DEBUG_PRINT(f"entered number {number_sent} userId {author.id} counting_number {self.counting_number} counting_number_userId {self.counting_number_userId}")
+			print(f"entered number {number_sent} userId {author.id} counting_number {self.counting_number} counting_number_userId {self.counting_number_userId}")
 			if self.counting_sem.acquire(blocking=False): #can grab semaphore lock
 
 				#can correctly incremented global counting_number var and not same user as previous iteration
