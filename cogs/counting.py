@@ -174,6 +174,8 @@ class Counting(commands.Cog):
 
 				print("Counting number has been set to", self.counting_number)
 
+			# start loop for counting loop
+			await asyncio.gather(self.background_loop_counting())
 
 	"""
 		Listener event for on_message
