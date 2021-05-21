@@ -129,8 +129,8 @@ class Counting(commands.Cog):
 	async def on_ready(self):
 		# global on_ready_status
 		
-		if on_ready_status: # this should only run once, especially when the API disconnects and reconnects
-			on_ready_status = False
+		if self.on_ready_status: # this should only run once, especially when the API disconnects and reconnects
+			self.on_ready_status = False
 
 			mydb, my_cursor = sql.connect()
 
