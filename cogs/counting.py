@@ -30,6 +30,30 @@ class Counting(commands.Cog):
 		self.MIN_CNTR = 0
 		self.c_status = False
 
+
+	"""
+		Check for commands, given a channel and optional error message
+	>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
+	"""
+	def is_in_channel(chnl: int, error_msg=None):
+		async def predicate(ctx):
+			if error_msg != None and not (ctx.channel and ctx.channel.id == chnl):
+				await ctx.reply(f"{error_msg} {ctx.author.mention}")
+			return ctx.channel and ctx.channel.id == chnl
+		return commands.check(predicate)
+
+	"""
+		Check for commands, returns True if message not from bot (id: 618200495277867110)
+	>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
+	"""
+	def is_not_bot():
+		async def predicate(ctx):
+			return ctx.author and ctx.author.id != self.bot.id
+		return commands.check(predicate)
+
+	"""
+		Bot sends a new counting number to #counting 
+	"""
 	async def bot_counting_number(self):
 		# global counting_number
 		# global counting_number_userId
@@ -38,6 +62,11 @@ class Counting(commands.Cog):
 		self.counting_number_userId = 1234
 		await self.bot.get_channel(715963289494093845).send("{0:b}".format(self.counting_number)) # bot sends counting number
 
+	"""
+		1 minute loop for counting
+		>>	if interrupted by condition lock, MIN_CNTR resets back to 0
+		>>	otherwise condition lock timeouts and MIN_CNTR increments
+	"""
 	def counting_1minute_loop(self):
 		# global MIN_CNTR
 		# global counting_LOCK
@@ -61,6 +90,11 @@ class Counting(commands.Cog):
 		self.counting_LOCK.release()
 		return
 
+	"""
+		background loop for counting
+		>>	if 30 minutes has passed, bot will send a counting number to #counting channel
+		>>		once bot has already done so, bot will just sleep until a user sends a number which restarts 30 minute timer
+	"""
 	async def background_loop_counting(self):
 		# global MIN_CNTR 	# create global vars
 		# global c_status
@@ -84,7 +118,7 @@ class Counting(commands.Cog):
 				await asyncio.sleep(15)
 				continue
 			else:	# if 30 minutes has passed, have bot send a number if didnt send one since last user number
-				await bot_counting_number()
+				await self.bot_counting_number()
 				print("AUTO: counting number has been set to", self.counting_number)
 				self.MIN_CNTR = 0	# reset MIN_CNTR back to zero
 				self.c_status = False	# set status to false so this clause cant run again til successful user number
@@ -222,26 +256,6 @@ class Counting(commands.Cog):
 
 		except ValueError: # message sent is not of integer type
 			await message.delete()
-
-	"""
-		Check for commands, given a channel and optional error message
-	>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
-	"""
-	def is_in_channel(chnl: int, error_msg=None):
-		async def predicate(ctx):
-			if error_msg != None and not (ctx.channel and ctx.channel.id == chnl):
-				await ctx.reply(f"{error_msg} {ctx.author.mention}")
-			return ctx.channel and ctx.channel.id == chnl
-		return commands.check(predicate)
-
-	"""
-		Check for commands, returns True if message not from bot (id: 618200495277867110)
-	>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
-	"""
-	def is_not_bot():
-		async def predicate(ctx):
-			return ctx.author and ctx.author.id != self.bot.id
-		return commands.check(predicate)
 
 	"""
 		Helper fuction to update the member count for a certain class
