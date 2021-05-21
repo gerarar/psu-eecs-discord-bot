@@ -219,6 +219,199 @@ class Classes(commands.Cog):
 		else:
 			await ctx.reply("To add a class reminder, the syntax of the command is `!add <assignment_name>`\nJust replace `<assignment_name>` with the name of the reminder you want to set!")
 
+	"""
+		!create command
+		>>	used to create classes, which then sub-creates a group chat channel, resources channel, voice channel, and class role
+	"""
+	@commands.command()
+	async def create(self, ctx, *args):
+		channel, author = ctx.channel, ctx.author
+
+		while True:
+			create_class_embed = (discord.Embed(title = "Please enter the alias of the class you want to create, for example: `CMPSC 465`", color=random.randint(111111, 999999), timestamp=datetime.datetime.now())
+				.set_footer(text = "Enter cancel to stop this session")
+				.set_author(name = author.name, icon_url = author.avatar_url))
+
+			await ctx.reply(embed=create_class_embed)
+			cond = True
+			while cond:
+				reply_msg = await self.bot.wait_for('message', check=mcheck)
+				if cancel(reply_msg.content):
+					cond = False
+					continue
+				else:
+					if len(reply_msg.content.split(" ")) > 1:
+						break  # this break won't trigger the else in while-else construct
+					else:
+						await reply_msg.reply("Make sure to format the class alias like `CMPSC 465`, with a space in between!")
+			else:  # this executes when cond is set to false
+				await reply_msg.reply("Class creation session cancelled.")
+				break
+			class_alias = reply_msg.content.upper()
+
+			mydb, my_cursor = sql.connect()
+			my_cursor.execute("SELECT * FROM Classes WHERE Class_name = '%s'" % (class_alias))
+			d = my_cursor.fetchall()
+			sql.close(mydb, my_cursor)
+
+			if len(d) > 0:
+				await reply_msg.reply("**{}** has already been created! Are you sure you want to continue? (yes/no)".format(class_alias))
+				reply_msg = await self.bot.wait_for('message', check=mcheck)
+				if reply_msg.content.upper() == "NO":
+					await reply_msg.reply("Class creation session cancelled.")
+					break
+
+
+			mydb, my_cursor = sql.connect()
+			my_cursor.execute("SELECT Department_alias, Department_id FROM Departments")
+			d = my_cursor.fetchall()
+			sql.close(mydb, my_cursor)
+
+			print(d)
+
+			class_department = None
+			Class_channel_id = None
+			found_dep_status = True
+			for dep in d:
+				if dep[0] in class_alias:
+					class_department, class_department_id = dep[0], dep[1]
+					found_dep_status = False
+					break
+
+			if found_dep_status: #insert Department name into db since it doesnt exist
+				await reply_msg.reply("This department doesn't seem to exist in the database! What does `{}` stand for and represent?\nFor example, `CMPSC` represents `Computer Science`.".format(class_alias.split(" ")[0]))
+				cond = True
+				while cond:
+					reply = await self.bot.wait_for('message', check=mcheck)
+					if cancel(reply.content):
+						cond = False
+						continue
+					else:
+						to_input = reply.content.title()
+						break  # this break won't trigger the else in while-else construct
+				else:  # this executes when cond is set to false
+					await reply_msg.reply("Class creation session cancelled.")
+					break
+
+
+				mydb, my_cursor = sql.connect()
+				my_cursor.execute("INSERT INTO Departments (Department_name, Department_alias) VALUES (%s, %s)",
+				(to_input, class_alias.split(" ")[0]))
+				mydb.commit()
+				sql.close(mydb, my_cursor)
+
+				mydb, my_cursor = sql.connect()
+				my_cursor.execute("SELECT Department_alias, Department_id FROM Departments")
+				d = my_cursor.fetchall()
+				sql.close(mydb, my_cursor)
+
+				print(d)
+
+				class_department = None
+				Class_channel_id = None
+				for dep in d:
+					if dep[0] in class_alias:
+						class_department, class_department_id = dep[0], dep[1]
+						break
+
+			create_class_embed = (discord.Embed(title = "Please enter the full name of the class, for example: `Data Structures and Algorithms`", color=random.randint(111111, 999999), timestamp=datetime.datetime.now())
+				.set_footer(text = "Enter cancel to stop this session")
+				.set_author(name = author.name, icon_url = author.avatar_url))
+			await reply_msg.reply(embed=create_class_embed)
+
+			reply_msg = await self.bot.wait_for('message', check=mcheck)
+			if cancel(reply_msg.content):
+				await reply_msg.reply("Class creation session cancelled.")
+				break
+			class_name = reply_msg.content.title()
+
+			create_class_embed = (discord.Embed(title = "Enter `confirm` to create the following class, or `cancel` to stop this session:\n **{}**: {}".format(class_alias, class_name), color=random.randint(111111, 999999), timestamp=datetime.datetime.now())
+				.set_author(name = author.name, icon_url = author.avatar_url))
+			await reply_msg.reply(embed=create_class_embed)
+			reply_msg = await self.bot.wait_for('message', check=mcheck)
+			if cancel(reply_msg.content):
+				await reply_msg.reply("Class creation session cancelled.")
+				break
+			elif reply_msg.content.upper() == "CONFIRM":
+				guild = ctx.guild
+				e = discord.utils.get(ctx.guild.roles, name='@everyone')
+				r = await guild.create_role(name=class_alias.title(), color=discord.Color.from_rgb(random.randint(0, 256), random.randint(0, 256), random.randint(0, 256)), hoist=True, mentionable=True)
+				
+				# overwrites = {
+				# 	guild.e: discord.PermissionOverwrite(send_messages = True, read_messages = False),
+				# 	guild.r: discord.PermissionOverwrite(read_messages = True)
+				# }
+				
+				cat = await guild.create_category_channel(class_alias)
+				await cat.edit(position=5)
+				overwrite = discord.PermissionOverwrite()
+				overwrite.send_messages = True
+				overwrite.read_messages = False
+				await cat.set_permissions(discord.utils.get(ctx.guild.roles, name='@everyone'), overwrite=overwrite)
+				overwrite = discord.PermissionOverwrite()
+				overwrite.read_messages = True
+				await cat.set_permissions(r, overwrite=overwrite)
+
+				await guild.create_text_channel("{}-resources".format(class_alias.split(" ")[1]), category=cat)
+				ch = await guild.create_text_channel("{}-chat".format(class_alias.split(" ")[1]), category=cat)
+				await guild.create_voice_channel("{} voice".format(class_alias.split(" ")[1]), category=cat)
+
+
+
+				mydb, my_cursor = sql.connect()
+				my_cursor.execute("INSERT INTO Classes (Class_department_id, Class_name, Class_full_name, Class_channel_id, Class_category_id, Class_role_id) VALUES (%s, %s, %s, %s, %s, %s)",
+				(class_department_id, class_alias, class_name, str(ch.id), str(cat.id), str(r.id)))
+				mydb.commit()
+				# sql.close(mydb, my_cursor)
+				await reply_msg.reply("{} has been successfully created! You can now join the class in <#618210352341188618> to view class channels and receive notifications.".format(class_alias))
+
+
+				my_cursor.execute("SELECT Class_name FROM Classes ORDER BY Class_name")
+				d = my_cursor.fetchall()
+
+				text = "**Join a class group chat and receive notifications by invoking one of the following command(s) below**:\n\n"
+				
+				arr = []
+				for i in d:
+					if i[0].split(" ")[0] not in [a[0] for a in arr]: #check if department is accounted for yet
+						arr.append([i[0].split(" ")[0], [i[0]]]) # append [dept alias, [class]]
+					else:
+						for inner in arr:
+							if i[0].split(" ")[0] == inner[0]:
+								inner_arr = inner[1]
+								inner_arr.append(i[0])
+								break
+					# text += "	◽{} - `!join {}`\n".format(i[0], i[0].split(" ")[1])
+				await self.bot.get_channel(618210352341188618).purge(limit=10)
+				
+				est = pytz.timezone('US/Eastern')
+				em = discord.Embed(description = "**Join a class group chat and receive notifications by invoking one of the following command(s) below**:\n\n",
+						color=0x10D600, timestamp=datetime.datetime.now())
+
+				my_cursor.execute("SELECT Department_name, Department_alias FROM Departments")
+				d = my_cursor.fetchall()
+				# all_dept_names = [b[0] for b in d]
+
+				for field in arr:
+					text = ""
+					for classs in field[1]:
+						text += "{} - `!join {}`\n".format(classs, classs.split(" ")[1]) #join nested array together to string
+
+					for dept in d:
+						if field[0] == dept[1]:	
+							em.add_field(name="{} | {}".format(dept[0], dept[1]), 
+								value=text, inline=True)
+							break
+
+				await self.bot.get_channel(618210352341188618).send(embed=em)
+
+				sql.close(mydb, my_cursor)
+
+				
+				await self.bot.get_channel(618818304936640533).send("A chat has been created for **{}**: {}! You can join it via <#618210352341188618>!".format(class_alias, class_name))
+			else:
+				await reply_msg.reply("Class creation session cancelled.")
+			break
 
 
 def setup(bot):
