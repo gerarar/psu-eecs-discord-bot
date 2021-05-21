@@ -62,7 +62,7 @@ class Counting(commands.Cog):
 		
 		self.counting_number = self.counting_number + 1
 		self.counting_number_userId = 1234
-		await self.bot.get_channel(715963289494093845).send("{0:b}".format(self.counting_number)) # bot sends counting number
+		await self.bot.get_channel(715963289494093845).send("{0:b}".format(self.counting_number)) # bot sends counting number in binary
 
 	"""
 		1 minute loop for counting
@@ -190,76 +190,77 @@ class Counting(commands.Cog):
 	async def on_message(self, message: discord.Message):
 		author, channel = message.author, message.channel
 	
-		try:
-			number_sent = int(message.content, 2) # checks if msg is a valid binary number
+		if channel.id == 715963289494093845 and author.id != 618200495277867110:
+			try:
+				number_sent = int(message.content, 2) # checks if msg is a valid binary number
 
-			global counting_number
-			global counting_number_userId
-			global counting_LOCK
-			# global start
-			global c_status
-			
-			print(f"entered number {number_sent} userId {author.id} counting_number {self.counting_number} counting_number_userId {self.counting_number_userId}")
-			if self.counting_sem.acquire(blocking=False): #can grab semaphore lock
+				# global counting_number
+				# global counting_number_userId
+				# global counting_LOCK
+				# global start
+				# global c_status
+				
+				print(f"entered number {number_sent} userId {author.id} counting_number {self.counting_number} counting_number_userId {self.counting_number_userId}")
+				if self.counting_sem.acquire(blocking=False): #can grab semaphore lock
 
-				#can correctly incremented global counting_number var and not same user as previous iteration
-				if number_sent == (self.counting_number + 1) and self.counting_number_userId != str(message.author.id):
-					mydb, my_cursor = sql.connect()
-					
-					my_cursor.execute("TRUNCATE Counting_Channel")
-					mydb.commit() #commit sql query
+					#can correctly incremented global counting_number var and not same user as previous iteration
+					if number_sent == (self.counting_number + 1) and self.counting_number_userId != str(message.author.id):
+						mydb, my_cursor = sql.connect()
+						
+						my_cursor.execute("TRUNCATE Counting_Channel")
+						mydb.commit() #commit sql query
 
-					my_cursor.execute("INSERT INTO Counting_Channel(userId, numb) VALUES (%s, %s)",
-						( str(message.author.id), number_sent ))
-					mydb.commit() #commit sql query
+						my_cursor.execute("INSERT INTO Counting_Channel(userId, numb) VALUES (%s, %s)",
+							( str(message.author.id), number_sent ))
+						mydb.commit() #commit sql query
 
-					sql.close(mydb, my_cursor) #close connection to db
+						sql.close(mydb, my_cursor) #close connection to db
 
-					self.counting_number = number_sent # save to global var
-					self.counting_number_userId = str(message.author.id)
-					# counting_number_userId = str(1234)   # for debug purposes 
+						self.counting_number = number_sent # save to global var
+						self.counting_number_userId = str(message.author.id)
+						# counting_number_userId = str(1234)   # for debug purposes 
 
-					if number_sent == 69696:
-						await message.reply("CONGRATULATIONS! YOU HAVE WON THE COUNTING GAME!! 🥳🎉🥳🎉 {}".format(message.author.mention))
-					elif number_sent == 69649:
-						await message.reply("CONGRATULATIONS! YOU GOT THE LAST PALIDROME BEFORE THE WINNING NUMBER!! 🥳🎉🥳🎉 {}".format(message.author.mention))
-						await message.add_reaction(emoji="🇳")
-						await message.add_reaction(emoji="🇮") 
-						await message.add_reaction(emoji="🇨") 
-						await message.add_reaction(emoji="🇪") 
+						if number_sent == 69696:
+							await message.reply("CONGRATULATIONS! YOU HAVE WON THE COUNTING GAME!! 🥳🎉🥳🎉 {}".format(message.author.mention))
+						elif number_sent == 69649:
+							await message.reply("CONGRATULATIONS! YOU GOT THE LAST PALIDROME BEFORE THE WINNING NUMBER!! 🥳🎉🥳🎉 {}".format(message.author.mention))
+							await message.add_reaction(emoji="🇳")
+							await message.add_reaction(emoji="🇮") 
+							await message.add_reaction(emoji="🇨") 
+							await message.add_reaction(emoji="🇪") 
 
-					elif str(message.content) == str(message.content)[::-1]:
-						await message.reply("Congrats, you got a Palindrome! {}".format(message.author.mention))
-						await message.add_reaction(emoji="🇳")
-						await message.add_reaction(emoji="🇮") 
-						await message.add_reaction(emoji="🇨") 
-						await message.add_reaction(emoji="🇪") 
+						elif str(message.content) == str(message.content)[::-1]:
+							await message.reply("Congrats, you got a Palindrome! {}".format(message.author.mention))
+							await message.add_reaction(emoji="🇳")
+							await message.add_reaction(emoji="🇮") 
+							await message.add_reaction(emoji="🇨") 
+							await message.add_reaction(emoji="🇪") 
 
-					elif number_sent % 1000 == 0:
-						await channel.send("{}!!! 🥳🎉\n{}% of goal achieved!".format(number_sent, round(number_sent/69696*100, 3)))
+						elif number_sent % 1000 == 0:
+							await channel.send("{}!!! 🥳🎉\n{}% of goal achieved!".format(number_sent, round(number_sent/69696*100, 3)))
 
-					elif number_sent % 100 == 0:
-						await channel.send("{}! 🎉\n{}% of goal achieved!".format(number_sent, round(number_sent/69696*100, 3)))
-					
-					self.counting_sem.release() #release sem lock
+						elif number_sent % 100 == 0:
+							await channel.send("{}! 🎉\n{}% of goal achieved!".format(number_sent, round(number_sent/69696*100, 3)))
+						
+						self.counting_sem.release() #release sem lock
 
-					self.counting_LOCK.acquire()
-					start = time.time() # reset time global var
+						self.counting_LOCK.acquire()
+						start = time.time() # reset time global var
 
-					print("Notifying counting_1minute_loop()")
-					self.counting_LOCK.notify()
-					self.counting_LOCK.release()
-					self.c_status = True
+						print("Notifying counting_1minute_loop()")
+						self.counting_LOCK.notify()
+						self.counting_LOCK.release()
+						self.c_status = True
 
-				else:
-					self.counting_sem.release() #release sem lock
+					else:
+						self.counting_sem.release() #release sem lock
+						await message.delete()
+
+				else: #cannot grab semaphore lock
 					await message.delete()
 
-			else: #cannot grab semaphore lock
+			except ValueError: # message sent is not of integer type
 				await message.delete()
-
-		except ValueError: # message sent is not of integer type
-			await message.delete()
 
 	"""
 		Helper fuction to update the member count for a certain class
