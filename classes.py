@@ -31,7 +31,7 @@ class Classes(commands.Cog):
 		await ctx.send(f'Hello {ctx.author.name}. {args}')
 
 	"""
-	Check for commands, given a channel and optional error message
+		Check for commands, given a channel and optional error message
 	>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
 	"""
 	def is_in_channel(chnl: int, error_msg=None):
@@ -40,6 +40,59 @@ class Classes(commands.Cog):
 				await ctx.reply(f"{error_msg} {ctx.author.mention}")
 			return ctx.channel and ctx.channel.id == chnl
 		return commands.check(predicate)
+
+	"""
+		Helper fuction to update the member count for a certain class
+	"""
+	async def update_class_member_count(self, role: discord.Role, chat_id: int):
+		psu_discord = self.bot.get_guild(575004997327126551)
+
+		cat = self.bot.get_channel(chat_id).category
+		members = psu_discord.members
+
+		f = lambda m : role in [r.id for r in m.roles] # checks if class specific role is in member roles
+		# print(members)
+		
+		result = list(filter(f, members))
+		num_members = len( result )
+
+		for ch in cat.voice_channels:
+			if "registered members" in ch.name.lower():
+				await ch.delete()
+				break
+
+		overwrite = discord.PermissionOverwrite()
+		overwrite.connect = False
+		overwrite.view_channel = False
+
+		voice_ch = await psu_discord.create_voice_channel("Registered Members: {}".format(num_members), category=cat)
+		await voice_ch.set_permissions(psu_discord.default_role, overwrite=overwrite)
+		print("Set {} registered members to {}".format(bot.get_channel(chat_id).name, num_members))
+
+	"""
+		Helper fuction to reorder the class channels by thier respective member counts
+	"""
+	async def reorder_channels(self):
+		BLACKLIST = ["Admin","GiveawayBot","Nadeko","Bots","Mod","dabBot","@everyone","Simple Poll","Groovy"]
+
+		psu_discord = self.bot.get_guild(575004997327126551)
+		raw_roles = psu_discord.roles
+
+		f = lambda r : r.name not in BLACKLIST
+
+		roles = list(filter(f, raw_roles))
+
+		roles.sort(key=lambda x: (len(x.members), x.name), reverse=True)
+
+		for index, role in enumerate(roles):
+			pos = len(raw_roles)-len(BLACKLIST)-index
+			if role.position == pos:
+				print("{} already in position {}".format(role.name, pos))
+				continue
+
+			print("Set {} to position {}".format(role.name, pos))
+			await role.edit(position=pos)
+			await asyncio.sleep(1)
 
 	"""
 		Listener event for on_message
@@ -429,10 +482,11 @@ class Classes(commands.Cog):
 	"""
 		>> Helper function to delete a message after buf number of seconds
 	"""
-	async def delete_message(chnl, msg, buf: int = 3):
+	async def delete_message(self, chnl, msg, buf: int = 3):
 		try:
 			await asyncio.sleep(buf)
 			await msg.delete()
+			return
 		except discord.errors.NotFound:
 			pass
 
@@ -453,13 +507,13 @@ class Classes(commands.Cog):
 				if args[0].upper() == c[0].split(" ")[1].upper():
 					await self.delete_message(channel, ctx.message, 0)
 					r = discord.utils.get(ctx.guild.roles, id=int(c[2]))
-					await author.add_roles(r) #cmpsc 465 role
+					await author.add_roles(r) 
 					m = await self.bot.get_channel(int(c[1])).send("You have successfully joined and will now receive all notifications/announcements pertaining to **{}**! {}".format(c[0], author.mention))
 					# await delete_message(channel, m, 20)
 					status = False
 
-					await update_class_member_count(int(c[2]), int(c[1]))
-					await reorder_channels()
+					await self.update_class_member_count(int(c[2]), int(c[1]))
+					await self.reorder_channels()
 
 					est = pytz.timezone('US/Eastern')
 					em = discord.Embed(color=0x10D600, timestamp=datetime.datetime.now())
