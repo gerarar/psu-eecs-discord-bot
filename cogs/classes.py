@@ -573,19 +573,9 @@ class Classes(commands.Cog):
 	"""
 	@commands.Cog.listener()
 	async def on_message(self, message: discord.Message):
-		channel = message.channel
-		
 		# if message is in #class-subscriptions channel and not a !join command and message not from bot
-		if channel.id == 618210352341188618 and not message.content.upper().startswith("!JOIN") and message.author.id != 618200495277867110:
-			await self.delete_message(channel, message, 1)
-
-		try:
-			#		(categories in order)	  server stats 		   information		general channels 	extracurricular		utility channels
-			if channel.category_id not in [747959929029263397, 618203960683266108, 575004997327126554, 759551365353046046, 618210051932291134]:
-				if channel.category.position != 5:	# position 5 is the highest position after default categories listed above
-					await channel.category.edit(position=5)
-		except AttributeError:
-			print("Tried to get category_id from DMChannel. Message: ", message.content, message.author.name, message.author.id)
+		if message.channel.id == 618210352341188618 and not message.content.upper().startswith("!JOIN") and message.author.id != 618200495277867110:
+			await self.delete_message(message.channel, message, 1)
 
 	@join.error
 	async def join_error(self, ctx, error):
