@@ -230,6 +230,11 @@ class Classes(commands.Cog):
 		def mcheck(msg):
 			return msg.author == author and msg.channel == channel
 
+		def cancel(m):
+			if m.upper() == "CANCEL":
+				return True
+			else: False
+
 		while True:
 			create_class_embed = (discord.Embed(title = "Please enter the alias of the class you want to create, for example: `CMPSC 465`", color=random.randint(111111, 999999), timestamp=datetime.datetime.now())
 				.set_footer(text = "Enter cancel to stop this session")
