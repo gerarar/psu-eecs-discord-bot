@@ -15,15 +15,12 @@ import pytz
 import threading
 
 
+"""
+	This cog is for commands dealing with classes
+"""
 class Classes(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-
-	def to_upper(argument):
-		return argument.upper()
-	"""
-		This cog is for commands dealing with classes
-	"""
 
 	@commands.command(aliases=["hi"]) 
 	async def hello(self, ctx, *args):
