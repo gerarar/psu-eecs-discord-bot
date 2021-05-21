@@ -540,7 +540,7 @@ class Classes(commands.Cog):
 
 		for c in d:
 			if int(channel.id) == int(c[1]):
-				await delete_message(channel, ctx.message, 0)
+				await self.delete_message(channel, ctx.message, 0)
 				r = discord.utils.get(ctx.guild.roles, id=int(c[2]))
 				await author.remove_roles(r) 
 
@@ -558,13 +558,13 @@ class Classes(commands.Cog):
 				await self.update_class_member_count(int(c[2]), int(c[1]))
 				await self.reorder_channels()
 
-				await delete_message(self.bot.get_channel(618210352341188618), m, 10)	
+				await self.delete_message(self.bot.get_channel(618210352341188618), m, 10)	
 				return
 
 		# Error Handling
 		m = await ctx.reply("Wrong Channel! Please go to the class chat you want to leave and enter `!leave` there. {}".format(author.mention))
-		await delete_message(channel, ctx.message, 10)
-		await delete_message(channel, m, 0)
+		await self.delete_message(channel, ctx.message, 10)
+		await self.delete_message(channel, m, 0)
 
 	"""
 		Listener event for on_message
