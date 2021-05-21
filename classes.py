@@ -14,11 +14,11 @@ import traceback
 import pytz
 import threading
 
-def is_in_channel(counting_chnl):
+def is_in_channel(chnl, error_msg=None):
 	async def predicate(ctx):
-		print("ctx.channel.id", ctx.channel.id)
-		print("counting_chnl", counting_chnl)
-		return ctx.channel and ctx.channel.id == counting_chnl
+		if error_msg != None:
+			await ctx.reply(f"{error_msg} {ctx.author.mention}")
+		return ctx.channel and ctx.channel.id == chnl
 	return commands.check(predicate)
 
 class Classes(commands.Cog):
@@ -421,6 +421,69 @@ class Classes(commands.Cog):
 				await reply_msg.reply("Class creation session cancelled.")
 			break
 
+
+	"""
+		>> Helper function to delete a message after buf number of seconds
+	"""
+	async def delete_message(chnl, msg, buf: int = 3):
+		try:
+			await asyncio.sleep(buf)
+			await msg.delete()
+		except discord.errors.NotFound:
+			pass
+
+	@commands.command()
+	@is_in_channel(618210352341188618,
+					error_msg="You entered the command in the wrong channel! Head over to <#618210352341188618> and send it there.")
+	async def join(self, ctx, *args):
+	# if channel.id == 618210352341188618 and message.content.upper().startswith("!JOIN"):
+		channel, author = ctx.channel, ctx.author
+		try:
+			mydb, my_cursor = sql.connect()
+			my_cursor.execute("SELECT Class_name, Class_channel_id, Class_role_id FROM Classes")
+			d = my_cursor.fetchall()
+			sql.close(mydb, my_cursor)
+
+			status = True
+			for c in d:
+				if args[0].upper() == c[0].split(" ")[1].upper():
+					await self.delete_message(channel, ctx.message, 0)
+					r = discord.utils.get(ctx.guild.roles, id=int(c[2]))
+					await author.add_roles(r) #cmpsc 465 role
+					m = await self.bot.get_channel(int(c[1])).send("You have successfully joined and will now receive all notifications/announcements pertaining to **{}**! {}".format(c[0], author.mention))
+					# await delete_message(channel, m, 20)
+					status = False
+
+					await update_class_member_count(int(c[2]), int(c[1]))
+					await reorder_channels()
+
+					est = pytz.timezone('US/Eastern')
+					em = discord.Embed(color=0x10D600, timestamp=datetime.datetime.now())
+
+					em.add_field(name="Member joined {} chat".format(c[0]), 
+						value="► Name: `{}#{}` {} [{}]\n► Joined Server On: **{}**\n► Channel: {}\n► Added Role: {} [{}]".format(author.name, author.discriminator, author.mention, author.id, author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p'), bot.get_channel(int(c[1])).mention, r.mention, r.id), 
+						inline=False)
+					em.set_author(name = author.name, icon_url = author.avatar_url)
+					staff_log_channel = self.bot.get_channel(707516608347635772)
+					await staff_log_channel.send(embed=em)
+
+			if status: await ctx.reply("`{}` doesn't seem to exist yet, try creating class chats and roles for it by doing `!create` in <#618205441540882451>! {}".format(cont[1], author.mention))
+		except Exception:
+			await self.delete_message(channel, ctx.message, 0)
+			m = await channel.send("Error! The command you entered is incorrect. For example, enter `!join 331` if you want to join the class CMPEN 331. {}".format(author.mention))
+			await self.delete_message(channel, m, 10)
+	# elif channel.id != 618210352341188618:
+	# 	await self.delete_message(channel, ctx.message, 0)
+	# 	m = await channel.send("You entered the command in the wrong channel! Head over to <#618210352341188618> and do it there. {}".format(author.mention))
+	# 	await self.delete_message(channel, m, 10)
+	# elif channel.id == 618210352341188618 and message.content.upper().startswith("!LEAVE"):
+	# 	m = await channel.send("Please go to the class you want to leave and enter `!leave` there. {}".format(author.mention))
+	# 	await self.delete_message(channel, message, 1)
+	# 	await self.delete_message(channel, m, 10)
+	# elif channel.id == 618210352341188618 and message.author.id != 618200495277867110:
+	# 	# m = await channel.send("Error! The command you entered is incorrect. For example, enter `!join 465` if you want to join the class CMPSC 465. {}".format(author.mention))
+	# 	await self.delete_message(channel, message, 1)
+	# 	# await delete_message(channel, m, 10)
 
 def setup(bot):
 	"""
