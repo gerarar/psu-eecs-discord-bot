@@ -148,7 +148,7 @@ class Counting(commands.Cog):
 	"""
 	@commands.Cog.listener()
 	@is_in_channel(715963289494093845)
-	@is_not_bot():
+	@is_not_bot()
 	async def on_message(self, message: discord.Message):
 		author, channel = message.author, message.channel
 	
