@@ -37,7 +37,10 @@ class PSU_Bot(commands.Bot): # inherits discord.commands class
 		print("PSU Bot V2 Connected!")
 		print(f"Logged in as {self.user.name}:{self.user.id}")
 		# print(vars(self))
-		await self.get_channel(795781887603114034).send("PSU EECS bot online!")
+		try:
+			await self.get_channel(795781887603114034).send("PSU EECS bot online!")
+		except AttributeError:
+			pass
 		self.print_commands()
 
 	"""
