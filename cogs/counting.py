@@ -32,8 +32,19 @@ class Counting(commands.Cog):
 
 
 	"""
+		>> Helper function to delete a message after buf number of seconds
+	"""
+	async def delete_message(self, chnl, msg, buf: int = 3):
+		try:
+			await asyncio.sleep(buf)
+			await msg.delete()
+		except discord.errors.NotFound:
+			pass
+		return
+
+	"""
 		Check for commands, given a channel and optional error message
-	>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
+		>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
 	"""
 	def is_in_channel(chnl: int, error_msg=None):
 		async def predicate(ctx):
@@ -44,7 +55,7 @@ class Counting(commands.Cog):
 
 	"""
 		Check for commands, returns True if message not from bot (id: 618200495277867110)
-	>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
+		>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
 	"""
 	def is_not_bot():
 		async def predicate(ctx):
@@ -169,7 +180,7 @@ class Counting(commands.Cog):
 							print("overwrote counting number set in db")
 						break
 					except ValueError: # message sent is not of integer type
-						await c_m.delete()
+						await delete_message(c_m.channel, c_m, 0)
 
 				sql.close(mydb, my_cursor)
 				await self.bot_counting_number()
@@ -185,8 +196,6 @@ class Counting(commands.Cog):
 		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_message
 	"""
 	@commands.Cog.listener()
-	@is_in_channel(715963289494093845)
-	@is_not_bot()
 	async def on_message(self, message: discord.Message):
 		author, channel = message.author, message.channel
 	
@@ -254,98 +263,13 @@ class Counting(commands.Cog):
 
 					else:
 						self.counting_sem.release() #release sem lock
-						await message.delete()
+						await delete_message(channel, message, 0)
 
 				else: #cannot grab semaphore lock
-					await message.delete()
+					await delete_message(channel, message, 0)
 
 			except ValueError: # message sent is not of integer type
-				await message.delete()
-
-	"""
-		Helper fuction to update the member count for a certain class
-	"""
-	async def update_class_member_count(self, role: discord.Role, chat_id: int):
-		psu_discord = self.bot.get_guild(575004997327126551)
-
-		cat = self.bot.get_channel(chat_id).category
-		members = psu_discord.members
-
-		f = lambda m : role in [r.id for r in m.roles] # checks if class specific role is in member roles
-		# print(members)
-		
-		result = list(filter(f, members))
-		num_members = len( result )
-
-		for ch in cat.voice_channels:
-			if "registered members" in ch.name.lower():
-				await ch.delete()
-				break
-
-		overwrite = discord.PermissionOverwrite()
-		overwrite.connect = False
-		overwrite.view_channel = False
-
-		voice_ch = await psu_discord.create_voice_channel("Registered Members: {}".format(num_members), category=cat)
-		await voice_ch.set_permissions(psu_discord.default_role, overwrite=overwrite)
-		print("Set {} registered members to {}".format(self.bot.get_channel(chat_id).name, num_members))
-
-	"""
-		Helper fuction to reorder the class channels by thier respective member counts
-	"""
-	async def reorder_channels(self):
-		BLACKLIST = ["Admin","GiveawayBot","Nadeko","Bots","Mod","dabBot","@everyone","Simple Poll","Groovy"]
-
-		psu_discord = self.bot.get_guild(575004997327126551)
-		raw_roles = psu_discord.roles
-
-		f = lambda r : r.name not in BLACKLIST
-
-		roles = list(filter(f, raw_roles))
-
-		roles.sort(key=lambda x: (len(x.members), x.name), reverse=True)
-
-		for index, role in enumerate(roles):
-			pos = len(raw_roles)-len(BLACKLIST)-index
-			if role.position == pos:
-				print("{} already in position {}".format(role.name, pos))
-				continue
-
-			print("Set {} to position {}".format(role.name, pos))
-			await role.edit(position=pos)
-			await asyncio.sleep(1)
-
-	"""
-		>> Helper function to delete a message after buf number of seconds
-	"""
-	async def delete_message(self, chnl, msg, buf: int = 3):
-		try:
-			await asyncio.sleep(buf)
-			await msg.delete()
-			return
-		except discord.errors.NotFound:
-			pass
-
-	# """
-	# 	Listener event for on_message
-	# 	>>	called when a message is created and sent
-	# 	>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_message
-	# """
-	# @commands.Cog.listener()
-	# async def on_message(self, message: discord.Message):
-	# 	channel = message.channel
-		
-	# 	# if message is in #class-subscriptions channel and not a !join command and message not from bot
-	# 	if channel.id == 618210352341188618 and not message.content.upper().startswith("!JOIN") and message.author.id != 618200495277867110:
-	# 		await self.delete_message(channel, message, 1)
-
-	# 	try:
-	# 		#		(categories in order)	  server stats 		   information		general channels 	extracurricular		utility channels
-	# 		if channel.category_id not in [747959929029263397, 618203960683266108, 575004997327126554, 759551365353046046, 618210051932291134]:
-	# 			if channel.category.position != 5:	# position 5 is the highest position after default categories listed above
-	# 				await channel.category.edit(position=5)
-	# 	except AttributeError:
-	# 		print("Tried to get category_id from DMChannel. Message: ", message.content, message.author.name, message.author.id)
+				await delete_message(channel, message, 0)
 
 
 def setup(bot):
