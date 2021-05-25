@@ -182,7 +182,7 @@ class Logging(commands.Cog):
 		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_raw_message_delete
 	"""
 	@commands.Cog.listener()
-	async def on_raw_message_delete(payload):
+	async def on_raw_message_delete(self, payload):
 
 		# Check if message is uncached
 		if payload.cached_message == "" or payload.cached_message == None:
@@ -206,7 +206,7 @@ class Logging(commands.Cog):
 		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_message_edit
 	"""
 	@commands.Cog.listener()
-	async def on_message_edit(before, after):
+	async def on_message_edit(self, before, after):
 		if before.author.id != self.bot.id:
 			est = pytz.timezone('US/Eastern')
 			joined_date = before.author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p')
@@ -238,7 +238,7 @@ class Logging(commands.Cog):
 		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_member_update
 	"""
 	@commands.Cog.listener()
-	async def on_member_update(before, after):
+	async def on_member_update(self, before, after):
 		if before.nick != after.nick:
 			est = pytz.timezone('US/Eastern')
 			em = discord.Embed( 
