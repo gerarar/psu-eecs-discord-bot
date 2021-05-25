@@ -241,8 +241,10 @@ class Logging(commands.Cog):
 	async def on_member_update(self, before, after):
 		if before.nick != after.nick:
 			est = pytz.timezone('US/Eastern')
+			joined_date = before.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p')
+
 			em = discord.Embed( 
-				description=f"► Name: `{before.author.name}#{before.author.discriminator}` {before.author.mention} [{before.author.id}]\n► Joined Server On: **{joined_date}**", 
+				description=f"► Name: `{before.name}#{before.discriminator}` {before.mention} [{before.id}]\n► Joined Server On: **{joined_date}**", 
 				color=0xFFF25A, timestamp=datetime.datetime.now())
 
 			em.set_author(name = f"{before.name}#{before.discriminator}'s nickname was changed", icon_url = before.avatar_url)
@@ -254,8 +256,10 @@ class Logging(commands.Cog):
 
 		if before.status != after.status:
 			est = pytz.timezone('US/Eastern')
+			joined_date = before.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p')
+
 			em = discord.Embed( 
-				description=f"► Name: `{before.author.name}#{before.author.discriminator}` {before.author.mention} [{before.author.id}]\n► Joined Server On: **{joined_date}**", 
+				description=f"► Name: `{before.name}#{before.discriminator}` {before.mention} [{before.id}]\n► Joined Server On: **{joined_date}**", 
 				color=0xFFF25A, timestamp=datetime.datetime.now())
 
 			em.set_author(name = f"{before.name}#{before.discriminator}'s status was changed", icon_url = before.avatar_url)
