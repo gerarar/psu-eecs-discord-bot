@@ -24,7 +24,7 @@ class Logging(commands.Cog):
 		self.bot = bot
 		self.on_ready_status = True
 
-		self.log_channel_id = os.getenv("LOG_CHANNEL")
+		self.log_channel_id = int(os.getenv("LOG_CHANNEL"))
 		self.auto_delete_commands = ["!LEAVE", "!JOIN", "!ADD"]
 
 
@@ -160,7 +160,7 @@ class Logging(commands.Cog):
 	async def on_message_delete(self, msg):
 
 		# Check if message is not from bot and not a command 
-		if msg.author.id != self.bot.id and not any(msg.content.upper().startswith(s.upper()) for s in self.auto_delete_commands):
+		if msg.author.id != self.bot.user.id and not any(msg.content.upper().startswith(s.upper()) for s in self.auto_delete_commands):
 			est = pytz.timezone('US/Eastern')
 			joined_date = msg.author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p')
 
@@ -207,7 +207,7 @@ class Logging(commands.Cog):
 	"""
 	@commands.Cog.listener()
 	async def on_message_edit(self, before, after):
-		if before.author.id != self.bot.id:
+		if before.author.id != self.bot.user.id:
 			est = pytz.timezone('US/Eastern')
 			joined_date = before.author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p')
 
