@@ -12,6 +12,7 @@ import mysqlConnection_local as sql # mysql file
 import traceback
 import pytz
 import threading
+from dotenv import load_dotenv
 
 load_dotenv() # adds environment variables to current environment
 
