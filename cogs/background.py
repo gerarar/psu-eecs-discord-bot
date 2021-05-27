@@ -118,7 +118,7 @@ class Background(commands.Cog):
 
 		for table, value in self.reminders_dict.items():
 			print(f"table: {table}")
-			query = f"SELECT * FROM {table} WHERE Datetimestamp < %s"
+			query = "SELECT * FROM {table} WHERE Datetimestamp < %s".format(table=str(table))
 			print(query)
 			my_cursor.execute(query, (datetime.datetime.now(),))
 			print("executed statement")
