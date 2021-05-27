@@ -120,6 +120,8 @@ class Background(commands.Cog):
 			print(f"table: {table}")
 			query = "SELECT * FROM {table} WHERE Datetimestamp < %s".format(table=str(table))
 			print(query)
+			my_cursor.execute("SELECT * FROM Reminders_10Minutes WHERE Datetimestamp < %s", (datetime.datetime.now(),))
+			print("exe statement")
 			my_cursor.execute(query, (datetime.datetime.now(),))
 			print("executed statement")
 			d = my_cursor.fetchall()
