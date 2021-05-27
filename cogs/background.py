@@ -115,9 +115,8 @@ class Background(commands.Cog):
 	"""
 	async def reminder_process(self):
 		mydb, my_cursor = sql.connect()
-		print("beginning reminder_process")
 
-		for table, value in self.reminders_dict:
+		for table, value in self.reminders_dict.items():
 			print(f"table: {table}")
 			my_cursor.execute("SELECT * FROM %s WHERE Datetimestamp < %s", (table, datetime.datetime.now(),))
 			d = my_cursor.fetchall()
