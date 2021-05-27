@@ -41,6 +41,7 @@ class Background(commands.Cog):
 				}
 		}
 		self.class_sub_channel_id = 618210352341188618
+		self.sem = threading.Semaphore(1) # used to prevent background task from restarting before previous one finishes
 
 
 	"""
@@ -142,13 +143,14 @@ class Background(commands.Cog):
 
 		sql.close(mydb, my_cursor)
 		await asyncio.sleep(60)
+		await self.sem.release()
 
 
 	async def my_background_task(self):
 
 		await self.bot.wait_until_ready()
 		while not self.bot.is_closed():
-
+			await self.sem.acquire() # 
 			try:
 				await self.reminder_process()
 			except Exception:
