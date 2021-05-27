@@ -109,9 +109,9 @@ class Background(commands.Cog):
 
 
 	"""
-		Listener event for on_member_remove
-		>>	called whenever a user leaves the guild/server whether be intentional or a ban
-		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_member_remove
+		Background task that runs every 60 seconds
+		Checks 3 tables from the database -- Reminders_10Minutes, Reminders_3Hours, Reminders_24Hours
+		If any table has info, would output the corresponding message in #class-announcements channel
 	"""
 	async def reminder_process(self):
 		mydb, my_cursor = sql.connect()
@@ -120,11 +120,9 @@ class Background(commands.Cog):
 			print(f"table: {table}")
 			query = f"SELECT * FROM {table} WHERE Datetimestamp < '%s'"
 			query = query % datetime.datetime.now()
-			print(query)
 			my_cursor.execute(query)
 
 			# my_cursor.execute(query, (datetime.datetime.now(),))   # this doesnt work for some reason
-			print("executed statement")
 			d = my_cursor.fetchall()
 			print(f'{table}: {d}')
 			
@@ -151,8 +149,10 @@ class Background(commands.Cog):
 		self.sem.release()
 
 
+	"""
+		Main function for the background task that runs every 60 seconds
+	"""
 	async def my_background_task(self):
-
 		await self.bot.wait_until_ready()
 		while not self.bot.is_closed():
 			self.sem.acquire() 
@@ -161,6 +161,12 @@ class Background(commands.Cog):
 			except Exception:
 				pass
 
+
+	"""
+		Listener event for on_ready
+		>>	called when the bot successfully connects to Discord API
+		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_ready
+	"""
 	@commands.Cog.listener()
 	async def on_ready(self):
 
