@@ -117,8 +117,9 @@ class Background(commands.Cog):
 		mydb, my_cursor = sql.connect()
 
 		for table, value in self.reminders_dict.items():
-			
+			print(f"table: {table}")
 			query = f"SELECT * FROM {table} WHERE Datetimestamp < %s"
+			print(query)
 			my_cursor.execute(query, (datetime.datetime.now(),))
 			d = my_cursor.fetchall()
 			print(f'{key}: {d}')
