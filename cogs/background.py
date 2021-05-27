@@ -119,11 +119,13 @@ class Background(commands.Cog):
 		for table, value in self.reminders_dict.items():
 			print(f"table: {table}")
 			import test
-			query = f"SELECT * FROM {table} WHERE Datetimestamp < %s"
+			query = f"SELECT * FROM {table} WHERE Datetimestamp < '%s'"
+			query = query % datetime.datetime.now()
 			print(query)
-			my_cursor.execute("SELECT * FROM Reminders_10Minutes WHERE Datetimestamp < %s", (datetime.datetime.now(),))
-			print("exe statement")
-			my_cursor.execute(str(query), (datetime.datetime.now(),))
+			my_cursor.execute(query)
+			# my_cursor.execute("SELECT * FROM Reminders_10Minutes WHERE Datetimestamp < %s", (datetime.datetime.now(),))
+			# print("exe statement")
+			# my_cursor.execute(str(query), (datetime.datetime.now(),))
 			print("executed statement")
 			d = my_cursor.fetchall()
 			print(f'{key}: {d}')
