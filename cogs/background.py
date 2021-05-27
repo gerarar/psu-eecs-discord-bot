@@ -118,17 +118,15 @@ class Background(commands.Cog):
 
 		for table, value in self.reminders_dict.items():
 			print(f"table: {table}")
-			import test
 			query = f"SELECT * FROM {table} WHERE Datetimestamp < '%s'"
 			query = query % datetime.datetime.now()
 			print(query)
 			my_cursor.execute(query)
-			# my_cursor.execute("SELECT * FROM Reminders_10Minutes WHERE Datetimestamp < %s", (datetime.datetime.now(),))
-			# print("exe statement")
-			# my_cursor.execute(str(query), (datetime.datetime.now(),))
+
+			# my_cursor.execute(query, (datetime.datetime.now(),))   # this doesnt work for some reason
 			print("executed statement")
 			d = my_cursor.fetchall()
-			print(f'{key}: {d}')
+			print(f'{table}: {d}')
 			
 			if len(d) > 0:
 				for a in d:
