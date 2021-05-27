@@ -121,6 +121,7 @@ class Background(commands.Cog):
 			query = f"SELECT * FROM {table} WHERE Datetimestamp < %s"
 			print(query)
 			my_cursor.execute(query, (datetime.datetime.now(),))
+			print("executed statement")
 			d = my_cursor.fetchall()
 			print(f'{key}: {d}')
 			
