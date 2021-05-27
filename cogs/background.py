@@ -114,8 +114,10 @@ class Background(commands.Cog):
 	"""
 	async def reminder_process(self):
 		mydb, my_cursor = sql.connect()
+		print("beginning reminder_process")
 
 		for table, value in self.reminders_dict:
+			print(f"table: {table}")
 			my_cursor.execute("SELECT * FROM %s WHERE Datetimestamp < %s", (table, datetime.datetime.now(),))
 			d = my_cursor.fetchall()
 			print(f'{key}: {d}')
@@ -207,125 +209,6 @@ class Background(commands.Cog):
 
 			# bot.loop.create_task(await my_background_task())
 			await asyncio.gather(self.my_background_task())
-
-
-	"""
-		Listener event for on_message_delete
-		>>	called whenever a message is deleted
-		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_message_delete
-	"""
-	@commands.Cog.listener()
-	async def on_message_delete(self, msg):
-
-		# Check if message is not from bot and not a command 
-		if msg.author.id != self.bot.user.id and not any(msg.content.upper().startswith(s.upper()) for s in self.auto_delete_commands):
-			est = pytz.timezone('US/Eastern')
-			joined_date = msg.author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p')
-
-			em = discord.Embed( 
-				description=f"► Name: `{msg.author.name}#{msg.author.discriminator}` {msg.author.mention} [{msg.author.id}]\n► Joined Server On: **{joined_date}**\n► Message ID: {msg.id}", 
-				color=0xFF8B00, timestamp=datetime.datetime.now())
-
-			em.set_author(name = f"Message by {msg.author.name}#{msg.author.discriminator} deleted in #{msg.channel.name}", icon_url = msg.author.avatar_url)
-			em.add_field(name="Message Content", value=msg.content, inline=False)
-			
-			staff_log_channel = self.bot.get_channel(self.log_channel_id)
-			await staff_log_channel.send(embed=em)
-
-
-	"""
-		Listener event for on_raw_message_delete
-		>>	called whenever an uncached message is deleted
-		>>	a message is uncached is when a message is older than the bot's uptime
-		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_raw_message_delete
-	"""
-	@commands.Cog.listener()
-	async def on_raw_message_delete(self, payload):
-
-		# Check if message is uncached
-		if payload.cached_message == "" or payload.cached_message == None:
-			est = pytz.timezone('US/Eastern')
-			em = discord.Embed( 
-				description=f"► Message ID: {payload.message_id}", 
-				color=0xFF8B00, timestamp=datetime.datetime.now())
-
-			try:
-				em.set_author(name = f"Uncached Message deleted in #{self.bot.get_channel(payload.channel_id).name}")
-			except TypeError:
-				return
-			
-			staff_log_channel = self.bot.get_channel(self.log_channel_id)
-			await staff_log_channel.send(embed=em)	
-
-
-	"""
-		Listener event for on_message_edit
-		>>	called whenever a message is edited
-		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_message_edit
-	"""
-	@commands.Cog.listener()
-	async def on_message_edit(self, before, after):
-		if before.author.id != self.bot.user.id:
-			est = pytz.timezone('US/Eastern')
-			joined_date = before.author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p')
-
-			em = discord.Embed( 
-				description=f"► Name: `{before.author.name}#{before.author.discriminator}` {before.author.mention} [{before.author.id}]\n► Joined Server On: **{joined_date}**\n► Message ID: {before.id}", 
-				color=0x0076FA, timestamp=datetime.datetime.now())
-
-			em.set_author(name = f"Message in #{before.channel.name} edited by {before.author.name}#{before.author.discriminator}", icon_url = before.author.avatar_url)
-			em.add_field(name="Original Content", value=before.content, inline=True)
-			em.add_field(name="New Content", value=after.content, inline=True)
-
-			staff_log_channel = self.bot.get_channel(self.log_channel_id)
-			await staff_log_channel.send(embed=em)
-
-		# Counting channel check
-		if before.channel.id == 715963289494093845:
-			l_msg = await before.channel.history(limit=1).flatten()
-			print(before.id, l_msg[0].id)
-			if before.id == l_msg[0].id:
-				if "{0:b}".format(counting_number) not in after.content.split(" "):
-					await before.channel.send("Current number was edited.\n")
-					await before.channel.send("{0:b}".format(counting_number))
-
-
-	"""
-		Listener event for on_member_update
-		>>	called whenever a member updates their profile
-		>>	https://discordpy.readthedocs.io/en/stable/api.html#discord.on_member_update
-	"""
-	@commands.Cog.listener()
-	async def on_member_update(self, before, after):
-		if before.nick != after.nick:
-			est = pytz.timezone('US/Eastern')
-			joined_date = before.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p')
-
-			em = discord.Embed( 
-				description=f"► Name: `{before.name}#{before.discriminator}` {before.mention} [{before.id}]\n► Joined Server On: **{joined_date}**", 
-				color=0xFFF25A, timestamp=datetime.datetime.now())
-
-			em.set_author(name = f"{before.name}#{before.discriminator}'s nickname was changed", icon_url = before.avatar_url)
-			em.add_field(name="Original Nickname", value=before.nick, inline=True)
-			em.add_field(name="New Nickname", value=after.nick, inline=True)
-
-			staff_log_channel = self.bot.get_channel(self.log_channel_id)
-			await staff_log_channel.send(embed=em)
-
-		if before.status != after.status:
-			est = pytz.timezone('US/Eastern')
-			joined_date = before.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p')
-
-			em = discord.Embed( 
-				description=f"► Name: `{before.name}#{before.discriminator}` {before.mention} [{before.id}]\n► Joined Server On: **{joined_date}**", 
-				color=0xFFF25A, timestamp=datetime.datetime.now())
-
-			em.set_author(name = f"{before.name}#{before.discriminator}'s status was changed", icon_url = before.avatar_url)
-			em.add_field(name="Original Status", value=str(before.status), inline=True)
-			em.add_field(name="New Status", value=str(after.status), inline=True)
-
-			staff_log_channel = self.bot.get_channel(self.log_channel_id)
-			await staff_log_channel.send(embed=em)
 
 
 def setup(bot):
