@@ -7,9 +7,7 @@ import datetime
 import asyncio
 import random
 import mysql.connector
-import datetime
 import inspect
-# import mysqlConnection_local as sql # mysql file
 import traceback
 import pytz
 import threading
@@ -17,6 +15,7 @@ from dotenv import load_dotenv
 
 load_dotenv() # adds environment variables to current environment (like bot key)
 bot = commands.Bot(command_prefix="!")
+
 
 class PSU_Bot(commands.Bot): # inherits discord.commands class
 	"""
@@ -26,8 +25,10 @@ class PSU_Bot(commands.Bot): # inherits discord.commands class
 	def __init__(self):  
 		super().__init__(command_prefix="!", intents=discord.Intents.all())
 		self.token = os.getenv("BOT_KEY")
-		# self.load_extension("cogs.classes")	# loads Classes extension containing classes-related commands
-		self.load_extension("cogs.counting")	# loads Classes extension containing classes-related commands
+		self.load_extension("cogs.classes")		# loads Classes extension containing classes-related commands
+		self.load_extension("cogs.counting")	# loads Classes extension containing counting-related commands
+		self.load_extension("cogs.logging")		# loads Classes extension containing logging-related functions
+		self.load_extension("cogs.background")	# loads Classes extension containing background related tasks
 		# print(vars(self))
 		
 
@@ -48,9 +49,10 @@ class PSU_Bot(commands.Bot): # inherits discord.commands class
 		Helper function to print all commands currently available 
 	"""
 	def print_commands(self):
-		cog = self.get_cog('Classes')
-		comms = cog.get_commands()
-		print(f"Classes commands: {[c.name for c in comms]}")
+		for cog_name in self.cogs:
+			cog = self.get_cog(cog_name)
+			comms = cog.get_commands()
+			print(f"{cog_name} commands: {[c.name for c in comms]}")
 
 	"""
 		Runs bot and connects to discord API
