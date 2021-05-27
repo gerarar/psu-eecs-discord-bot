@@ -143,14 +143,14 @@ class Background(commands.Cog):
 
 		sql.close(mydb, my_cursor)
 		await asyncio.sleep(60)
-		await self.sem.release()
+		self.sem.release()
 
 
 	async def my_background_task(self):
 
 		await self.bot.wait_until_ready()
 		while not self.bot.is_closed():
-			await self.sem.acquire() # 
+			self.sem.acquire() 
 			try:
 				await self.reminder_process()
 			except Exception:
