@@ -180,7 +180,7 @@ class Counting(commands.Cog):
 							print("overwrote counting number set in db")
 						break
 					except ValueError: # message sent is not of integer type
-						await delete_message(c_m.channel, c_m, 0)
+						await self.delete_message(c_m.channel, c_m, 0)
 
 				sql.close(mydb, my_cursor)
 				await self.bot_counting_number()
@@ -263,13 +263,13 @@ class Counting(commands.Cog):
 
 					else:
 						self.counting_sem.release() #release sem lock
-						await delete_message(channel, message, 0)
+						await self.delete_message(channel, message, 0)
 
 				else: #cannot grab semaphore lock
-					await delete_message(channel, message, 0)
+					await self.delete_message(channel, message, 0)
 
 			except ValueError: # message sent is not of integer type
-				await delete_message(channel, message, 0)
+				await self.delete_message(channel, message, 0)
 
 
 def setup(bot):
