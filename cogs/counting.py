@@ -105,38 +105,43 @@ class Counting(commands.Cog):
 
 	"""
 		background loop for counting
-		>>	if 30 minutes has passed, bot will send a counting number to #counting channel
+		>>	if 'timeout_minutes' minutes has passed, bot will send a counting number to #counting channel
 		>>		once bot has already done so, bot will just sleep until a user sends a number which restarts 30 minute timer
 	"""
 	async def background_loop_counting(self):
-		# global MIN_CNTR 	# create global vars
-		# global c_status
-		# global start
-		# global counting_LOCK	# grab counting lock from global space
+
 		self.MIN_CNTR = 0 	# counter to count how many minutes
 		start = time.time()
 		self.c_status = False 	# used to determine if bot can send a number
 
 		await self.bot.wait_until_ready()
 
+		timeout_minutes = random.randint(1,10)
 		# counting_LOCK.acquire()
 		# counting_LOCK.wait() # wait until successful number sent by user, will notify and continue on.
 		while not self.bot.is_closed():
 			# await asyncio.gather(thread_func())
-			if self.MIN_CNTR < 30 and self.c_status:
+			if self.MIN_CNTR < timeout_minutes and self.c_status:
+				if self.MIN_CNTR == 0 and random.random() > 0.33:	# 66% chance for bot to immediately send a counting number after user input
+					self.c_status = False
+					continue
 				print("BEFORE ASYNCIO to_thread CALL")
 				await asyncio.to_thread(self.counting_1minute_loop)
 				print("AFTER ASYNCIO to_thread CALL")
+			
 			elif not self.c_status: 
 				await asyncio.sleep(15)
 				continue
-			else:	# if 30 minutes has passed, have bot send a number if didnt send one since last user number
+			
+			else:	# if timoput_minutes minutes has passed, have bot send a number if didnt send one since last user number
 				await self.bot_counting_number()
 				print("AUTO: counting number has been set to", self.counting_number)
 				self.MIN_CNTR = 0	# reset MIN_CNTR back to zero
 				self.c_status = False	# set status to false so this clause cant run again til successful user number
+				timeout_minutes = random.randint(1,10)	# get a new timeout to wait
 
 			print(f"MIN_CNTR: {self.MIN_CNTR} -- {time.time()-start}")
+
 
 	@commands.Cog.listener()
 	async def on_ready(self):
@@ -202,12 +207,6 @@ class Counting(commands.Cog):
 		if channel.id == 715963289494093845 and author.id != 618200495277867110:
 			try:
 				number_sent = int(message.content, 2) # checks if msg is a valid binary number
-
-				# global counting_number
-				# global counting_number_userId
-				# global counting_LOCK
-				# global start
-				# global c_status
 				
 				print(f"entered number {number_sent} userId {author.id} counting_number {self.counting_number} counting_number_userId {self.counting_number_userId}")
 				if self.counting_sem.acquire(blocking=False): #can grab semaphore lock
