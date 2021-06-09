@@ -138,7 +138,7 @@ class Counting(commands.Cog):
 				print("AFTER ASYNCIO to_thread CALL")
 			
 			elif not self.c_status: 
-				await asyncio.sleep(15)
+				await asyncio.sleep(1)
 				continue
 			
 			else:	# if timoput_minutes minutes has passed, have bot send a number if didnt send one since last user number
