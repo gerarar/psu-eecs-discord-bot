@@ -120,7 +120,8 @@ class Counting(commands.Cog):
 
 		await self.bot.wait_until_ready()
 
-		print("timeout_minutes:", self.timeout_minutes := random.randint(1,10))
+		self.timeout_minutes = random.randint(1,10)
+		print("timeout_minutes:", self.timeout_minutes)
 		# counting_LOCK.acquire()
 		# counting_LOCK.wait() # wait until successful number sent by user, will notify and continue on.
 		while not self.bot.is_closed():
