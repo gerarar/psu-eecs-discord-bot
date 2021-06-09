@@ -81,8 +81,6 @@ class Counting(commands.Cog):
 		>>	otherwise condition lock timeouts and MIN_CNTR increments
 	"""
 	def counting_1minute_loop(self):
-		# global MIN_CNTR
-		# global counting_LOCK
 
 		self.counting_LOCK.acquire()
 		print("about to wait")
@@ -139,13 +137,13 @@ class Counting(commands.Cog):
 				self.MIN_CNTR = 0	# reset MIN_CNTR back to zero
 				self.c_status = False	# set status to false so this clause cant run again til successful user number
 				timeout_minutes = random.randint(1,10)	# get a new timeout to wait
+				print(f"timeout_minutes: {timeout_minutes}")
 
 			print(f"MIN_CNTR: {self.MIN_CNTR} -- {time.time()-start}")
 
 
 	@commands.Cog.listener()
 	async def on_ready(self):
-		# global on_ready_status
 		
 		if self.on_ready_status: # this should only run once, especially when the API disconnects and reconnects
 			self.on_ready_status = False
