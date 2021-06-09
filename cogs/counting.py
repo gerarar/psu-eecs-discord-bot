@@ -114,14 +114,14 @@ class Counting(commands.Cog):
 
 		await self.bot.wait_until_ready()
 
-		timeout_minutes = random.randint(1,10)
+		self.timeout_minutes = random.randint(1,10)
 		# counting_LOCK.acquire()
 		# counting_LOCK.wait() # wait until successful number sent by user, will notify and continue on.
 		while not self.bot.is_closed():
 			# await asyncio.gather(thread_func())
-			if self.MIN_CNTR < timeout_minutes and self.c_status:
+			if self.MIN_CNTR < self.timeout_minutes and self.c_status:
 				if self.MIN_CNTR == 0 and random.random() > 0.33:	# 66% chance for bot to immediately send a counting number after user input
-					self.MIN_CNTR = timeout_minutes
+					self.MIN_CNTR = self.timeout_minutes
 					continue
 				print("BEFORE ASYNCIO to_thread CALL")
 				await asyncio.to_thread(self.counting_1minute_loop)
@@ -136,8 +136,8 @@ class Counting(commands.Cog):
 				print("AUTO: counting number has been set to", self.counting_number)
 				self.MIN_CNTR = 0	# reset MIN_CNTR back to zero
 				self.c_status = False	# set status to false so this clause cant run again til successful user number
-				timeout_minutes = random.randint(1,10)	# get a new timeout to wait
-				print(f"timeout_minutes: {timeout_minutes}")
+				self.timeout_minutes = random.randint(1,10)	# get a new timeout to wait
+				print(f"timeout_minutes: {self.timeout_minutes}")
 
 			print(f"MIN_CNTR: {self.MIN_CNTR} -- {time.time()-start}")
 
