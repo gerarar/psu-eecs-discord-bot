@@ -257,6 +257,8 @@ class Counting(commands.Cog):
 						self.counting_LOCK.notify()
 						self.counting_LOCK.release()
 						self.c_status = True
+						self.timeout_minutes = random.randint(1,10)
+						print(f"timeout_minutes: {self.timeout_minutes}")
 
 					else:
 						self.counting_sem.release() #release sem lock
