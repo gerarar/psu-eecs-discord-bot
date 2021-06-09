@@ -97,7 +97,7 @@ class Counting(commands.Cog):
 			print(f"timeout_minutes: {self.timeout_minutes}")
 			if random.random() > 0.33:	# 66% chance for bot to immediately send a counting number after user input
 				self.MIN_CNTR = self.timeout_minutes
-				continue
+				# continue
 			
 		elif not ret_lock:
 			print("Timeout!")
