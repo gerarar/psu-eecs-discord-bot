@@ -92,6 +92,12 @@ class Counting(commands.Cog):
 			print("########### Notified before timeout!")
 			self.MIN_CNTR = 0
 			print(f"MIN_CNTR RESET TO {self.MIN_CNTR}")
+
+			self.timeout_minutes = random.randint(1,10)
+			print(f"timeout_minutes: {self.timeout_minutes}")
+			if random.random() > 0.33:	# 66% chance for bot to immediately send a counting number after user input
+				self.MIN_CNTR = self.timeout_minutes
+				continue
 			
 		elif not ret_lock:
 			print("Timeout!")
@@ -114,15 +120,15 @@ class Counting(commands.Cog):
 
 		await self.bot.wait_until_ready()
 
-		self.timeout_minutes = random.randint(1,10)
+		print("timeout_minutes:", self.timeout_minutes := random.randint(1,10))
 		# counting_LOCK.acquire()
 		# counting_LOCK.wait() # wait until successful number sent by user, will notify and continue on.
 		while not self.bot.is_closed():
 			# await asyncio.gather(thread_func())
 			if self.MIN_CNTR < self.timeout_minutes and self.c_status:
-				if self.MIN_CNTR == 0 and random.random() > 0.33:	# 66% chance for bot to immediately send a counting number after user input
-					self.MIN_CNTR = self.timeout_minutes
-					continue
+				# if self.MIN_CNTR == 0 and random.random() > 0.33:	# 66% chance for bot to immediately send a counting number after user input
+				# 	self.MIN_CNTR = self.timeout_minutes
+				# 	continue
 				print("BEFORE ASYNCIO to_thread CALL")
 				await asyncio.to_thread(self.counting_1minute_loop)
 				print("AFTER ASYNCIO to_thread CALL")
@@ -257,8 +263,6 @@ class Counting(commands.Cog):
 						self.counting_LOCK.notify()
 						self.counting_LOCK.release()
 						self.c_status = True
-						self.timeout_minutes = random.randint(1,10)
-						print(f"timeout_minutes: {self.timeout_minutes}")
 
 					else:
 						self.counting_sem.release() #release sem lock
