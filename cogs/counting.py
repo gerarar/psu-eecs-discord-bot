@@ -121,7 +121,7 @@ class Counting(commands.Cog):
 			# await asyncio.gather(thread_func())
 			if self.MIN_CNTR < timeout_minutes and self.c_status:
 				if self.MIN_CNTR == 0 and random.random() > 0.33:	# 66% chance for bot to immediately send a counting number after user input
-					self.c_status = False
+					self.MIN_CNTR = timeout_minutes
 					continue
 				print("BEFORE ASYNCIO to_thread CALL")
 				await asyncio.to_thread(self.counting_1minute_loop)
