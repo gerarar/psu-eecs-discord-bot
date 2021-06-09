@@ -95,9 +95,6 @@ class Counting(commands.Cog):
 
 			self.timeout_minutes = random.randint(1,10)
 			print(f"timeout_minutes: {self.timeout_minutes}")
-			if random.random() > 0.33:	# 66% chance for bot to immediately send a counting number after user input
-				self.MIN_CNTR = self.timeout_minutes
-				# continue
 			
 		elif not ret_lock:
 			print("Timeout!")
@@ -127,9 +124,15 @@ class Counting(commands.Cog):
 		while not self.bot.is_closed():
 			# await asyncio.gather(thread_func())
 			if self.MIN_CNTR < self.timeout_minutes and self.c_status:
-				# if self.MIN_CNTR == 0 and random.random() > 0.33:	# 66% chance for bot to immediately send a counting number after user input
-				# 	self.MIN_CNTR = self.timeout_minutes
-				# 	continue
+				print("prob", prob := random.random())
+				if self.MIN_CNTR == 0 and prob > 0.33:	# 66% chance for bot to immediately send a counting number after user input
+					await self.bot_counting_number()
+					print("AUTO1: counting number has been set to", self.counting_number)
+					self.c_status = False	# set status to false so this clause cant run again til successful user number
+					self.timeout_minutes = random.randint(1,10)	# get a new timeout to wait
+					print(f"timeout_minutes: {self.timeout_minutes}")
+					continue
+
 				print("BEFORE ASYNCIO to_thread CALL")
 				await asyncio.to_thread(self.counting_1minute_loop)
 				print("AFTER ASYNCIO to_thread CALL")
@@ -140,7 +143,7 @@ class Counting(commands.Cog):
 			
 			else:	# if timoput_minutes minutes has passed, have bot send a number if didnt send one since last user number
 				await self.bot_counting_number()
-				print("AUTO: counting number has been set to", self.counting_number)
+				print("AUTO2: counting number has been set to", self.counting_number)
 				self.MIN_CNTR = 0	# reset MIN_CNTR back to zero
 				self.c_status = False	# set status to false so this clause cant run again til successful user number
 				self.timeout_minutes = random.randint(1,10)	# get a new timeout to wait
