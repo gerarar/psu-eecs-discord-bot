@@ -28,6 +28,13 @@ class Logging(commands.Cog):
 		self.auto_delete_commands = ["!LEAVE", "!JOIN", "!ADD"]
 
 
+	async def get_counting_number(self):
+		mydb, my_cursor = sql.connect()
+		my_cursor.execute("SELECT * FROM Counting_Channel")
+		data = my_cursor.fetchall()
+		sql.close(mydb, my_cursor)
+		return int(data[0][1]) # return counting number retrieved from db
+
 	"""
 		>> Helper function to delete a message after buf number of seconds
 	"""
@@ -174,6 +181,16 @@ class Logging(commands.Cog):
 			staff_log_channel = self.bot.get_channel(self.log_channel_id)
 			await staff_log_channel.send(embed=em)
 
+			counting_number = await self.get_counting_number()
+			# Counting channel check
+			if msg.channel.id == 715963289494093845:
+				counting_number = await self.get_counting_number()
+				print(msg.content, counting_number)
+				if str(counting_number) in msg.content:
+					if "{0:b}".format(counting_number) not in after.content.split(" "):
+						await msg.channel.send("Current number was deleted.\n")
+						await msg.channel.send("{0:b}".format(counting_number))
+
 
 	"""
 		Listener event for on_raw_message_delete
@@ -227,6 +244,7 @@ class Logging(commands.Cog):
 			l_msg = await before.channel.history(limit=1).flatten()
 			print(before.id, l_msg[0].id)
 			if before.id == l_msg[0].id:
+				counting_number = await self.get_counting_number()
 				if "{0:b}".format(counting_number) not in after.content.split(" "):
 					await before.channel.send("Current number was edited.\n")
 					await before.channel.send("{0:b}".format(counting_number))
