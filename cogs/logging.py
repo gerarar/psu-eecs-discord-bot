@@ -194,12 +194,12 @@ class Logging(commands.Cog):
 			# Counting channel check
 			if msg.channel.id == 715963289494093845:
 				counting_number = await self.get_counting_number()
-				print(msg.content, int_to_binary(counting_number))
+				print(msg.content, self.int_to_binary(counting_number))
 
-				if int_to_binary(counting_number) in msg.content:
-					if int_to_binary(counting_number) not in after.content.split(" "):
+				if self.int_to_binary(counting_number) in msg.content:
+					if self.int_to_binary(counting_number) not in after.content.split(" "):
 						await msg.channel.send("Current number was deleted.\n")
-						await msg.channel.send(int_to_binary(counting_number))
+						await msg.channel.send(self.int_to_binary(counting_number))
 
 
 	"""
@@ -255,9 +255,9 @@ class Logging(commands.Cog):
 			print(before.id, l_msg[0].id)
 			if before.id == l_msg[0].id:
 				counting_number = await self.get_counting_number()
-				if "{0:b}".format(counting_number) not in after.content.split(" "):
+				if self.int_to_binary(counting_number) not in after.content.split(" "):
 					await before.channel.send("Current number was edited.\n")
-					await before.channel.send(int_to_binary(counting_number))
+					await before.channel.send(self.int_to_binary(counting_number))
 
 
 	"""
