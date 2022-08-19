@@ -30,6 +30,9 @@ class Counting(commands.Cog):
 		self.MIN_CNTR = 0
 		self.c_status = False
 
+		# 80% chance for bot to auto-reply with a counting number after successful user input
+		self._BOT_REPLY_PROBABILITY = 0.20
+
 
 	"""
 		>> Helper function to delete a message after buf number of seconds
@@ -125,7 +128,7 @@ class Counting(commands.Cog):
 			# await asyncio.gather(thread_func())
 			if self.MIN_CNTR < self.timeout_minutes and self.c_status:
 				print("prob", prob := random.random())
-				if self.MIN_CNTR == 0 and prob > 0.33:	# 66% chance for bot to immediately send a counting number after user input
+				if self.MIN_CNTR == 0 and prob > self._BOT_REPLY_PROBABILITY:	# (1-n)% chance for bot to immediately send a counting number after user input
 					await self.bot_counting_number()
 					print("AUTO1: counting number has been set to", self.counting_number)
 					self.c_status = False	# set status to false so this clause cant run again til successful user number
