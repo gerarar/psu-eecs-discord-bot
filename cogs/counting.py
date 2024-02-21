@@ -30,8 +30,8 @@ class Counting(commands.Cog):
 		self.MIN_CNTR = 0
 		self.c_status = False
 
-		# 80% chance for bot to auto-reply with a counting number after successful user input
-		self._BOT_REPLY_PROBABILITY = 0.20
+		# (1-n)% = 99% chance for bot to auto-reply with a counting number after successful user input
+		self._BOT_REPLY_PROBABILITY = 0.01
 
 
 	"""
