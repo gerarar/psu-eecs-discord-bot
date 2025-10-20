@@ -55,7 +55,7 @@ class Logging(commands.Cog):
 		Helper fuction to udpate the serer stats of number of members, excluding bots, in the server/guild
 	"""
 	async def update_guild_member_count(self):
-		psu_discord = self.bot.get_guild(575004997327126551)
+		psu_discord = self.bot.get_guild(int(os.getenv("GUILD_ID")))
 
 		f = lambda x : x.bot == False
 
@@ -85,7 +85,7 @@ class Logging(commands.Cog):
 		BLACKLIST = ["Admin","GiveawayBot","Bots","Mod","dabBot","Simple Poll","Groovy"]
 		# @everyone is position 0
 
-		psu_discord = self.bot.get_guild(575004997327126551)
+		psu_discord = self.bot.get_guild(int(os.getenv("GUILD_ID")))
 		raw_roles = psu_discord.roles
 
 		f = lambda r : r.name not in BLACKLIST + ['@everyone']
@@ -116,7 +116,7 @@ class Logging(commands.Cog):
 		print("{} left the server".format(member.name))
 		await self.reorder_channels()
 
-		await self.bot.get_channel(618204101666406402).send("{} left the server 🙁.".format(member.name))
+		await self.bot.get_channel(int(os.getenv("LOG_CHANNEL"))).send("{} left the server 🙁.".format(member.name))
 		est = pytz.timezone('US/Eastern')
 
 		possessed_roles = ", ".join([r.name for r in member.roles])
@@ -144,7 +144,7 @@ class Logging(commands.Cog):
 		print("{} joined the server".format(member.name))
 
 		try:
-			await member.send("Welcome to the Penn State CS/CE/EE Server!\nHead on over to <#618210352341188618> to join one of the classes listed there.\nIf a certain class isn't listed there, you can create a group chat for that certain class by doing `!create` in <#618205441540882451> to get started.")
+			await member.send("Welcome to the Penn State CS/CE/EE Server!\nHead on over to <#{}}> to join one of the classes listed there.\nIf a certain class isn't listed there, you can create a group chat for that certain class by doing `!create` in <#{}> to get started.".format(os.getenv("CLASS_SUB_CHANNEL"), os.getenv("BOT_CHANNEL")))
 			print("DM'd {}".format(member.name))
 		except Exception:
 			print("Could not DM {}".format(member.name))
@@ -189,7 +189,7 @@ class Logging(commands.Cog):
 
 			counting_number = await self.get_counting_number()
 			# Counting channel check
-			if msg.channel.id == 715963289494093845:
+			if msg.channel.id == int(os.getenv("COUNTING_CHANNEL")):
 				counting_number = await self.get_counting_number()
 				print(msg.content, self.int_to_binary(counting_number))
 
@@ -247,7 +247,7 @@ class Logging(commands.Cog):
 			await staff_log_channel.send(embed=em)
 
 		# Counting channel check
-		if before.channel.id == 715963289494093845:
+		if before.channel.id == int(os.getenv("COUNTING_CHANNEL")):
 			l_msg = [message async for message in await before.channel.history(limit=1)]
 			print(before.id, l_msg[0].id)
 			if before.id == l_msg[0].id:

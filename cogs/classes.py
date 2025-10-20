@@ -8,7 +8,10 @@ import inspect
 import mysqlConnection_local as sql # mysql file
 import traceback
 import pytz
+import os
+from dotenv import load_dotenv
 
+load_dotenv() # loads environment variables from .env file
 
 """
 	This cog is for commands dealing with classes
@@ -37,7 +40,7 @@ class Classes(commands.Cog):
 		Helper fuction to update the member count for a certain class
 	"""
 	async def update_class_member_count(self, role: discord.Role, chat_id: int):
-		psu_discord = self.bot.get_guild(575004997327126551)
+		psu_discord = self.bot.get_guild(int(os.getenv("GUILD_ID")))
 
 		cat = self.bot.get_channel(chat_id).category
 		members = psu_discord.members
@@ -68,7 +71,7 @@ class Classes(commands.Cog):
 		BLACKLIST = ["Admin","GiveawayBot","Bots","Mod","dabBot","Simple Poll","Groovy"]
 		# @everyone is position 0
 
-		psu_discord = self.bot.get_guild(575004997327126551)
+		psu_discord = self.bot.get_guild(int(os.getenv("GUILD_ID")))
 		raw_roles = psu_discord.roles
 
 		f = lambda r : r.name not in BLACKLIST + ['@everyone']
@@ -411,7 +414,7 @@ class Classes(commands.Cog):
 				(class_department_id, class_alias, class_name, str(ch.id), str(cat.id), str(r.id)))
 				mydb.commit()
 				# sql.close(mydb, my_cursor)
-				await reply_msg.reply("{} has been successfully created! You can now join the class in <#618210352341188618> to view class channels and receive notifications.".format(class_alias))
+				await reply_msg.reply("{} has been successfully created! You can now join the class in <#{}> to view class channels and receive notifications.".format(class_alias, os.getenv("CLASS_SUB_CHANNEL")))
 
 
 				my_cursor.execute("SELECT Class_name FROM Classes ORDER BY Class_name")
@@ -430,7 +433,7 @@ class Classes(commands.Cog):
 								inner_arr.append(i[0])
 								break
 					# text += "	◽{} - `!join {}`\n".format(i[0], i[0].split(" ")[1])
-				await self.bot.get_channel(618210352341188618).purge(limit=10)
+				await self.bot.get_channel(int(os.getenv("CLASS_SUB_CHANNEL"))).purge(limit=10)
 				
 				est = pytz.timezone('US/Eastern')
 				em = discord.Embed(description = "**Join a class group chat and receive notifications by invoking one of the following command(s) below**:\n\n",
@@ -451,12 +454,12 @@ class Classes(commands.Cog):
 								value=text, inline=True)
 							break
 
-				await self.bot.get_channel(618210352341188618).send(embed=em)
+				await self.bot.get_channel(int(os.getenv("CLASS_SUB_CHANNEL"))).send(embed=em)
 
 				sql.close(mydb, my_cursor)
 
-				
-				await self.bot.get_channel(618818304936640533).send("A chat has been created for **{}**: {}! You can join it via <#618210352341188618>!".format(class_alias, class_name))
+
+				await self.bot.get_channel(int(os.getenv("CLASS_ANNOUNCEMENTS"))).send("A chat has been created for **{}**: {}! You can join it via <#{}>!".format(class_alias, class_name, os.getenv("CLASS_SUB_CHANNEL")))
 			else:
 				await reply_msg.reply("Class creation session cancelled.")
 			break
@@ -478,8 +481,8 @@ class Classes(commands.Cog):
 		>>	used to join classes and their respective class channels, as well get class role
 	"""
 	@commands.command(aliases=["sub"])
-	@is_in_channel(618210352341188618,
-					error_msg="You entered the command in the wrong channel! Head over to <#618210352341188618> and send it there.")
+	@is_in_channel(int(os.getenv("CLASS_SUB_CHANNEL")),
+					error_msg="You entered the command in the wrong channel! Head over to <#{}> and send it there.".format(os.getenv("CLASS_SUB_CHANNEL")))
 	async def join(self, ctx, *args):
 		channel, author = ctx.channel, ctx.author
 		try:
@@ -508,11 +511,11 @@ class Classes(commands.Cog):
 									.format(author.name, author.discriminator, author.mention, author.id, author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p'), self.bot.get_channel(int(c[1])).mention, r.mention, r.id), 
 						inline=False)
 					em.set_author(name = author.name, icon_url = author.avatar.url)
-					staff_log_channel = self.bot.get_channel(707516608347635772)
+					staff_log_channel = self.bot.get_channel(int(os.getenv("STAFF_LOG_CHANNEL")))
 					await staff_log_channel.send(embed=em)
 					await self.reorder_channels()
 
-			if status: await ctx.reply("`{}` doesn't seem to exist yet, try creating class chats and roles for it by doing `!create` in <#618205441540882451>! {}".format(cont[1], author.mention))
+			if status: await ctx.reply("`{}` doesn't seem to exist yet, try creating class chats and roles for it by doing `!create` in <#{}>! {}".format(cont[1], author.mention, os.getenv("CLASS_SUB_CHANNEL")))
 		except Exception as e:
 			await self.delete_message(channel, ctx.message, 0)
 			m = await channel.send("Error! The command you entered is incorrect. For example, enter `!join 331` if you want to join the class CMPEN 331. {}".format(author.mention))
@@ -538,7 +541,7 @@ class Classes(commands.Cog):
 				r = discord.utils.get(ctx.guild.roles, id=int(c[2]))
 				await author.remove_roles(r) 
 
-				m = await self.bot.get_channel(618210352341188618).send("You have successfully unsubscribed from **{}**!\n{}".format(c[0], author.mention))
+				m = await self.bot.get_channel(int(os.getenv("CLASS_ANNOUNCEMENTS"))).send("You have successfully unsubscribed from **{}**!\n{}".format(c[0], author.mention))
 				est = pytz.timezone('US/Eastern')
 				em = discord.Embed(color=0xFA0000, timestamp=datetime.datetime.now())
 
@@ -546,11 +549,11 @@ class Classes(commands.Cog):
 					value="► Name: `{}#{}` {} [{}]\n► Joined Server On: **{}**\n► Channel: {}\n► Removed Role: {} [{}]".format(author.name, author.discriminator, author.mention, author.id, author.joined_at.astimezone(est).strftime('%a %b %d %Y %-I:%M%p'), self.bot.get_channel(int(c[1])).mention, r.mention, r.id), 
 					inline=False)
 				em.set_author(name = author.name, icon_url = author.avatar.url)
-				staff_log_channel = self.bot.get_channel(707516608347635772)
+				staff_log_channel = self.bot.get_channel(int(os.getenv("STAFF_LOG_CHANNEL")))
 				await staff_log_channel.send(embed=em)
 
 				await self.update_class_member_count(int(c[2]), int(c[1]))
-				await self.delete_message(self.bot.get_channel(618210352341188618), m, 10)	
+				await self.delete_message(self.bot.get_channel(int(os.getenv("CLASS_SUB_CHANNEL"))), m, 10)	
 				await self.reorder_channels()
 				return
 
@@ -569,12 +572,12 @@ class Classes(commands.Cog):
 		channel = message.channel
 		
 		# if message is in #class-subscriptions channel and not a !join command and message not from bot
-		if channel.id == 618210352341188618 and not message.content.upper().startswith("!JOIN") and message.author.id != 618200495277867110:
+		if channel.id == int(os.getenv("CLASS_SUB_CHANNEL")) and not message.content.upper().startswith("!JOIN") and message.author.id != int(os.getenv("BOT_ID")):
 			await self.delete_message(channel, message, 1)
 
 		try:
 			#		(categories in order)	  server stats 		   information		general channels 	extracurricular		utility channels
-			if channel.category_id not in [747959929029263397, 618203960683266108, 575004997327126554, 759551365353046046, 618210051932291134]:
+			if channel.category_id not in os.getenv("CATEGORIES").split(","):
 				if channel.category.position != 5:	# position 5 is the highest position after default categories listed above
 					await channel.category.edit(position=5)
 		except AttributeError:

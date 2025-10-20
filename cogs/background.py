@@ -37,7 +37,7 @@ class Background(commands.Cog):
 					"Warning_Msg": string.Template("**$class_name HOMEWORK REMINDER:** `$class_obj` is due in less then **3 hours**!! $class_role_mention")
 				}
 		}
-		self.class_sub_channel_id = 618210352341188618
+		self.class_sub_channel_id = int(os.getenv("CLASS_SUB_CHANNEL"))
 		self.sem = threading.Semaphore(1) # used to prevent background task from restarting before previous one finishes
 
 
@@ -57,7 +57,7 @@ class Background(commands.Cog):
 		Helper fuction to udpate the serer stats of number of members, excluding bots, in the server/guild
 	"""
 	async def update_guild_member_count(self):
-		psu_discord = self.bot.get_guild(575004997327126551)
+		psu_discord = self.bot.get_guild(int(os.getenv("GUILD_ID")))
 
 		f = lambda x : x.bot == False
 
@@ -87,7 +87,7 @@ class Background(commands.Cog):
 		BLACKLIST = ["Admin","GiveawayBot","Bots","Mod","dabBot","Simple Poll","Groovy"]
 		# @everyone is position 0
 
-		psu_discord = self.bot.get_guild(575004997327126551)
+		psu_discord = self.bot.get_guild(int(os.getenv("GUILD_ID")))
 		raw_roles = psu_discord.roles
 
 		f = lambda r : r.name not in BLACKLIST + ['@everyone']
@@ -133,11 +133,11 @@ class Background(commands.Cog):
 					data = {
 						"class_name": a[1],
 						"class_obj": a[3],
-						"class_role_mention": {discord.utils.get(self.bot.get_guild(575004997327126551).roles, id=int(a[0])).mention}
+						"class_role_mention": {discord.utils.get(self.bot.get_guild(int(os.getenv("GUILD_ID"))).roles, id=int(a[0])).mention}
 					}
 
 					# this will sub in data values into the $-placeholders by matching dictionary keys to placeholder names
-					m = await self.bot.get_channel(618818304936640533).send(value["Warning_Msg"].substitute(data))
+					m = await self.bot.get_channel(int(os.getenv("CLASS_ANNOUNCEMENTS"))).send(value["Warning_Msg"].substitute(data))
 
 					await m.add_reaction(emoji="🖕")
 					my_cursor.execute("DELETE FROM %s WHERE ID = %s", (table, a[0],)) #delete from table

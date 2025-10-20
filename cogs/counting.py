@@ -13,7 +13,9 @@ import mysqlConnection_local as sql # mysql file
 import traceback
 import pytz
 import threading
+from dotenv import load_dotenv
 
+load_dotenv() # adds environment variables to current environment
 
 """
 	This cog is for commands dealing with counting
@@ -57,7 +59,7 @@ class Counting(commands.Cog):
 		return commands.check(predicate)
 
 	"""
-		Check for commands, returns True if message not from bot (id: 618200495277867110)
+		Check for commands, returns True if message not from bot
 		>>	https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#checks
 	"""
 	def is_not_bot():
@@ -76,7 +78,7 @@ class Counting(commands.Cog):
 		
 		self.counting_number = self.counting_number + 1
 		self.counting_number_userId = 1234
-		await self.bot.get_channel(715963289494093845).send("{0:b}".format(self.counting_number)) # bot sends counting number in binary
+		await self.bot.get_channel(int(os.getenv("COUNTING_CHANNEL"))).send("{0:b}".format(self.counting_number)) # bot sends counting number in binary
 
 	"""
 		1 minute loop for counting
@@ -173,7 +175,7 @@ class Counting(commands.Cog):
 				self.counting_number = int(data[0][1]) # set global variables
 				self.counting_number_userId = str(data[0][0]) 
 
-				counting_msgs = [message async for message in self.bot.get_channel(715963289494093845).history(limit=30)]
+				counting_msgs = [message async for message in self.bot.get_channel(int(os.getenv("COUNTING_CHANNEL"))).history(limit=30)]
 				for c_m in counting_msgs:
 					try:
 						number_msg = int(c_m.content, 2) # checks if msg is a valid binary number
@@ -214,8 +216,8 @@ class Counting(commands.Cog):
 	@commands.Cog.listener()
 	async def on_message(self, message: discord.Message):
 		author, channel = message.author, message.channel
-	
-		if channel.id == 715963289494093845 and author.id != 618200495277867110:
+
+		if channel.id == int(os.getenv("COUNTING_CHANNEL")) and author.id != int(os.getenv("BOT_ID")): # if message is in #counting channel and not from bot
 			try:
 				number_sent = int(message.content, 2) # checks if msg is a valid binary number
 				
